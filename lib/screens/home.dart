@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'package:sales_records/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -10,11 +11,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
+  List<String> acc = [];
+
   @override
   void initState() {
     super.initState();
     _controller.addListener(() => setState(() {}));
+    acc = LocalData().getAccount() ?? [];
+  }
+
+  void addAccound() {
+    Navigator.of(context).pop();
+    _controller.text.isNotEmpty ? acc.add(_controller.text) : null;
+    _controller.clear();
+    LocalData().setAccount(acc);
+    setState(() {});
   }
 
   @override
@@ -29,17 +41,43 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           'Account',
-          style: GoogleFonts.rajdhani(fontSize: 25.0),
+          style:
+              GoogleFonts.rajdhani(fontSize: 25.0, fontWeight: FontWeight.bold),
         ),
       ),
-      body: Center(
-        child: Text(
-          'No Accounts yet\nCreate a new one',
-          style: GoogleFonts.rajdhani(
-              fontSize: 25.0, color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-      ),
+      body: acc.isEmpty
+          ? Center(
+              child: Text(
+                'No Accounts yet\nCreate a new one',
+                style: GoogleFonts.rajdhani(
+                    fontSize: 25.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold),
+              ),
+            )
+          : Column(
+              children: acc
+                  .map((e) => Container(
+                        height: 50,
+                        width: MediaQuery.of(context).size.width,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 5.0),
+                        padding: const EdgeInsets.only(left: 10.0),
+                        alignment: Alignment.centerLeft,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5.0),
+                            border: Border.all(width: 0.5),
+                            color: Colors.grey.shade700),
+                        child: Text(e,
+                            style: GoogleFonts.rajdhani(
+                                fontSize: 25.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold)),
+                      ))
+                  .toList(),
+            ),
       floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
         onPressed: () => showDialog(
             context: context,
             builder: (BuildContext buildContext) {
@@ -48,20 +86,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(10.0)),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  height: 175.0,
+                  height: 145.0,
                   width: MediaQuery.of(context).size.width - 10,
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: (MediaQuery.of(context).size.height / 3) / 20,
+                      const SizedBox(
+                        height: 10.0,
                       ),
                       Text(
                         'Account',
                         style: GoogleFonts.rajdhani(
                             fontSize: 20.0, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(
-                        height: (MediaQuery.of(context).size.height / 3) / 20,
+                      const SizedBox(
+                        height: 10.0,
                       ),
                       TextField(
                         keyboardType: TextInputType.name,
@@ -89,8 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         controller: _controller,
                       ),
-                      SizedBox(
-                        height: (MediaQuery.of(context).size.height / 3) / 25,
+                      const SizedBox(
+                        height: 10.0,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -108,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontWeight: FontWeight.bold),
                               )),
                           TextButton(
-                            onPressed: null,
+                            onPressed: () => addAccound(),
                             child: Text(
                               'Create',
                               style: GoogleFonts.rajdhani(
@@ -124,12 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             }),
-        child: const Icon(Icons.add),
       ),
     );
   }
-}
-
-void addAccound() async {
-  SharedPreferences accounts = await SharedPreferences.getInstance();
 }

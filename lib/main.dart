@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sales_records/screens/home.dart';
 
-void main() {
+import 'package:sales_records/shared_preferences.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalData().init();
   runApp(const MyApp());
 }
 

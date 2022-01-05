@@ -14,4 +14,12 @@ class LocalData {
   List<String>? getAccount() {
     return account.getStringList('Account');
   }
+
+  Future<void> setItem(List<String> items) async {
+    await account.setStringList('Item', items);
+  }
+
+  List<String>? getItem() {
+    return account.getStringList('Item');
+  }
 }

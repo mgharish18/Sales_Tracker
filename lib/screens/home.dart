@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sales_records/screens/items_screen.dart';
 
 import 'package:sales_records/shared_preferences.dart';
 
@@ -51,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style:
               GoogleFonts.rajdhani(fontSize: 25.0, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         actions: [
           acc.isNotEmpty
               ? isDeleteClicked
@@ -64,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         style: GoogleFonts.rajdhani(
                                             fontWeight: FontWeight.bold)),
                                     content: Text(
-                                        "Account data will be also lost",
+                                        "Account data will also be lost",
                                         style: GoogleFonts.rajdhani(
                                             fontWeight: FontWeight.bold)),
                                     shape: RoundedRectangleBorder(
@@ -160,40 +162,48 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(8),
               itemCount: acc.length,
               itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  height: 50,
-                  width: MediaQuery.of(context).size.width,
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 5.0),
-                  padding: const EdgeInsets.only(left: 10.0),
-                  alignment: Alignment.centerLeft,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5.0),
-                      border: Border.all(width: 0.5),
-                      color: Colors.white),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(acc[index],
-                          style: GoogleFonts.rajdhani(
-                              fontSize: 25.0,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold)),
-                      isDeleteClicked
-                          ? Checkbox(
-                              fillColor:
-                                  MaterialStateProperty.all(Colors.black),
-                              checkColor: Colors.white,
-                              value: isChecked[index],
-                              onChanged: (value) {
-                                setState(() {
-                                  isChecked[index] = value!;
-                                });
-                              })
-                          : Container(
-                              width: 0,
-                            )
-                    ],
+                return GestureDetector(
+                  onTap: () => isDeleteClicked
+                      ? null
+                      : Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Items(name: acc[index]))),
+                  child: Container(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width,
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    padding: const EdgeInsets.only(left: 10.0),
+                    alignment: Alignment.centerLeft,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5.0),
+                        border: Border.all(width: 0.5),
+                        color: Colors.white),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(acc[index],
+                            style: GoogleFonts.rajdhani(
+                                fontSize: 25.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold)),
+                        isDeleteClicked
+                            ? Checkbox(
+                                fillColor:
+                                    MaterialStateProperty.all(Colors.black),
+                                checkColor: Colors.white,
+                                value: isChecked[index],
+                                onChanged: (value) {
+                                  setState(() {
+                                    isChecked[index] = value!;
+                                  });
+                                })
+                            : Container(
+                                width: 0,
+                              )
+                      ],
+                    ),
                   ),
                 );
               }),

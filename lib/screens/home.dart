@@ -183,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        const Icon(Icons.account_balance_rounded),
                         Text(acc[index],
                             style: GoogleFonts.rajdhani(
                                 fontSize: 25.0,
@@ -235,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextField(
                         keyboardType: TextInputType.name,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.person),
+                          prefixIcon: const Icon(Icons.account_balance_rounded),
                           suffixIcon: _controller.text.isEmpty
                               ? Container(
                                   width: 0,

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalData {
   static late SharedPreferences account;
+  Map itemmap = {};
 
   Future init() async {
     return account = await SharedPreferences.getInstance();
@@ -15,11 +18,13 @@ class LocalData {
     return account.getStringList('Account');
   }
 
-  Future<void> setItem(List<String> items) async {
-    await account.setStringList('Item', items);
+  Future<void> setItem(String acc, String item, int price) async {
+    itemmap = getItem(acc);
+    itemmap[item] = price;
+    account.setString(acc, jsonEncode(itemmap));
   }
 
-  List<String>? getItem() {
-    return account.getStringList('Item');
+  Map getItem(String acc) {
+    return jsonDecode(account.getString(acc) ?? jsonEncode(itemmap));
   }
 }

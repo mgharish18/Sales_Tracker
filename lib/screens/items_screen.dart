@@ -13,7 +13,8 @@ class Items extends StatefulWidget {
 
 class _ItemsState extends State<Items> {
   late final String acc;
-  List<String> items = [];
+  Map items = {};
+  List<String> routine = [];
   final TextEditingController _controller1 = TextEditingController();
   final TextEditingController _controller2 = TextEditingController();
 
@@ -24,7 +25,17 @@ class _ItemsState extends State<Items> {
       setState(() {});
     });
     acc = widget.name;
-    items = LocalData().getItem() ?? [];
+    items = LocalData().getItem(acc);
+  }
+
+  void addItem() {
+    if (_controller1.text.isNotEmpty & _controller2.text.isNotEmpty) {
+      LocalData().setItem(acc, _controller1.text, int.parse(_controller2.text));
+      Navigator.pop(context);
+      setState(() {
+        items = LocalData().getItem(acc);
+      });
+    }
   }
 
   @override
@@ -128,7 +139,7 @@ class _ItemsState extends State<Items> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
-                              onPressed: null,
+                              onPressed: () => addItem(),
                               child: Text(
                                 "ADD",
                                 style: GoogleFonts.rajdhani(
@@ -150,6 +161,7 @@ class _ItemsState extends State<Items> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black,
         title: Text(
           acc,
           style:
@@ -169,14 +181,32 @@ class _ItemsState extends State<Items> {
                         child: Row(
                           children: [
                             const Icon(
-                              Icons.add_box,
+                              Icons.api_rounded,
                               color: Colors.black,
                             ),
                             const SizedBox(
                               width: 8.0,
                             ),
                             Text(
-                              "Add item",
+                              "Add Product",
+                              style: GoogleFonts.rajdhani(
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        )),
+                    PopupMenuItem<int>(
+                        value: 1,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.addchart_rounded,
+                              color: Colors.black,
+                            ),
+                            const SizedBox(
+                              width: 8.0,
+                            ),
+                            Text(
+                              "Add Delivey Routine",
                               style: GoogleFonts.rajdhani(
                                   fontWeight: FontWeight.bold),
                             ),
@@ -185,17 +215,35 @@ class _ItemsState extends State<Items> {
                   ])
         ],
       ),
-      body: items.isEmpty
+      body: items.isEmpty & routine.isEmpty
           ? Center(
               child: Text(
-                'Add new item',
+                'Add your Product and Delivery Routine ',
                 style: GoogleFonts.rajdhani(
                     fontSize: 25.0,
                     color: Colors.black,
                     fontWeight: FontWeight.bold),
               ),
             )
-          : null,
+          : routine.isEmpty
+              ? Center(
+                  child: Text(
+                    'Add Delivery Routine ',
+                    style: GoogleFonts.rajdhani(
+                        fontSize: 25.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
+                )
+              : Center(
+                  child: Text(
+                    'Add Product',
+                    style: GoogleFonts.rajdhani(
+                        fontSize: 25.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
     );
   }
 }

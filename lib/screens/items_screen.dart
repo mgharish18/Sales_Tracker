@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import 'package:sales_records/shared_preferences.dart';
 
@@ -17,6 +18,8 @@ class _ItemsState extends State<Items> {
   List<String> routine = [];
   final TextEditingController _controller1 = TextEditingController();
   final TextEditingController _controller2 = TextEditingController();
+  DateTime date = DateTime.now();
+  TimeOfDay time = const TimeOfDay(hour: 10, minute: 0);
 
   @override
   void initState() {
@@ -34,6 +37,29 @@ class _ItemsState extends State<Items> {
       Navigator.pop(context);
       setState(() {
         items = LocalData().getItem(acc);
+      });
+    }
+  }
+
+  Future pickDate(BuildContext context) async {
+    DateTime? dateValue = await showDatePicker(
+        context: context,
+        initialDate: date,
+        firstDate: DateTime(DateTime.now().year - 1),
+        lastDate: DateTime(DateTime.now().year + 1));
+    if (dateValue != null) {
+      setState(() {
+        date = dateValue;
+      });
+    }
+  }
+
+  Future pickTime(BuildContext context) async {
+    TimeOfDay? timeValue =
+        await showTimePicker(context: context, initialTime: time);
+    if (timeValue != null) {
+      setState(() {
+        time = timeValue;
       });
     }
   }
@@ -159,91 +185,156 @@ class _ItemsState extends State<Items> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = MaterialLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(
-          acc,
-          style:
-              GoogleFonts.rajdhani(fontSize: 25.0, fontWeight: FontWeight.bold),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: Text(
+            acc,
+            style: GoogleFonts.rajdhani(
+                fontSize: 25.0, fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          actions: [
+            PopupMenuButton(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+                padding: const EdgeInsets.all(10),
+                tooltip: 'Menu',
+                onSelected: (value) => onSelected(context, value),
+                itemBuilder: (context) => [
+                      PopupMenuItem<int>(
+                          value: 0,
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.api_rounded,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(
+                                width: 8.0,
+                              ),
+                              Text(
+                                "Add Product",
+                                style: GoogleFonts.rajdhani(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          )),
+                    ])
+          ],
         ),
-        centerTitle: true,
-        actions: [
-          PopupMenuButton(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0)),
-              padding: const EdgeInsets.all(10),
-              tooltip: 'Menu',
-              onSelected: (value) => onSelected(context, value),
-              itemBuilder: (context) => [
-                    PopupMenuItem<int>(
-                        value: 0,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.api_rounded,
-                              color: Colors.black,
-                            ),
-                            const SizedBox(
-                              width: 8.0,
-                            ),
-                            Text(
-                              "Add Product",
-                              style: GoogleFonts.rajdhani(
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        )),
-                    PopupMenuItem<int>(
-                        value: 1,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.addchart_rounded,
-                              color: Colors.black,
-                            ),
-                            const SizedBox(
-                              width: 8.0,
-                            ),
-                            Text(
-                              "Add Delivey Routine",
-                              style: GoogleFonts.rajdhani(
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ))
-                  ])
-        ],
-      ),
-      body: items.isEmpty & routine.isEmpty
-          ? Center(
-              child: Text(
-                'Add your Product and Delivery Routine ',
-                style: GoogleFonts.rajdhani(
-                    fontSize: 25.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold),
-              ),
-            )
-          : routine.isEmpty
-              ? Center(
-                  child: Text(
-                    'Add Delivery Routine ',
-                    style: GoogleFonts.rajdhani(
-                        fontSize: 25.0,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold),
-                  ),
-                )
-              : Center(
-                  child: Text(
-                    'Add Product',
-                    style: GoogleFonts.rajdhani(
-                        fontSize: 25.0,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold),
-                  ),
+        body: items.isEmpty
+            ? Center(
+                child: Text(
+                  'Add your Products ',
+                  style: GoogleFonts.rajdhani(
+                      fontSize: 25.0,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
                 ),
-    );
+              )
+            : Container(
+                margin: const EdgeInsets.all(20.0),
+                height: MediaQuery.of(context).size.height,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Date',
+                      style: GoogleFonts.rajdhani(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 50.0),
+                      width: MediaQuery.of(context).size.width,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                                onPressed: () => pickDate(context),
+                                icon: const Icon(
+                                  Icons.calendar_today_rounded,
+                                  color: Colors.white,
+                                )),
+                            TextButton(
+                              child: Text(
+                                DateFormat('dd-MM-yyyy').format(date),
+                                style: GoogleFonts.rajdhani(
+                                  fontSize: 25,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onPressed: () => pickDate(context),
+                            ),
+                            IconButton(
+                                onPressed: () => pickDate(context),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down_sharp,
+                                  color: Colors.white,
+                                ))
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15.0),
+                    Text(
+                      'Time',
+                      style: GoogleFonts.rajdhani(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 50.0),
+                      width: MediaQuery.of(context).size.width,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(10.0)),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                                onPressed: () => pickTime(context),
+                                icon: const Icon(
+                                  Icons.access_time_filled_rounded,
+                                  color: Colors.white,
+                                )),
+                            TextButton(
+                              child: Text(
+                                localizations.formatTimeOfDay(time),
+                                style: GoogleFonts.rajdhani(
+                                  fontSize: 25,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onPressed: () => pickTime(context),
+                            ),
+                            IconButton(
+                                onPressed: () => pickTime(context),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down_sharp,
+                                  color: Colors.white,
+                                ))
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
   }
 }

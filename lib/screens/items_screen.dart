@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sales_records/shared_preferences.dart';
+import 'package:sales_records/widget/list_of_items.dart';
 
 class Items extends StatefulWidget {
   final String name;
@@ -35,9 +36,8 @@ class _ItemsState extends State<Items> {
     if (_controller1.text.isNotEmpty & _controller2.text.isNotEmpty) {
       LocalData().setItem(acc, _controller1.text, int.parse(_controller2.text));
       Navigator.pop(context);
-      setState(() {
-        items = LocalData().getItem(acc);
-      });
+      items = LocalData().getItem(acc);
+      setState(() {});
     }
   }
 
@@ -328,11 +328,12 @@ class _ItemsState extends State<Items> {
                                 icon: const Icon(
                                   Icons.arrow_drop_down_sharp,
                                   color: Colors.white,
-                                ))
+                                )),
                           ],
                         ),
                       ),
                     ),
+                    ItemsList(items: items),
                   ],
                 ),
               ));

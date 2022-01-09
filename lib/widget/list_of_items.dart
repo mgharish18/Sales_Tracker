@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ItemsList extends StatefulWidget {
   final Map items;
+  static late List<int> countList;
   const ItemsList({Key? key, required this.items}) : super(key: key);
 
   @override
@@ -12,11 +13,33 @@ class ItemsList extends StatefulWidget {
 
 class _ItemsListState extends State<ItemsList> {
   late Map items;
-  final TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+  }
+
+  Widget _buildList(int index) {
+    final TextEditingController _controller = TextEditingController();
+    return TextField(
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.black, width: 2.0),
+            borderRadius: BorderRadius.circular(10.0)),
+        focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+            borderRadius: BorderRadius.circular(10.0)),
+        labelText: "Count",
+      ),
+      controller: _controller,
+      onChanged: (value) => {
+        value.isNotEmpty
+            ? ItemsList.countList[index] = int.parse(value)
+            : ItemsList.countList[index] = 0,
+      },
+      onTap: null,
+    );
   }
 
   @override
@@ -27,8 +50,9 @@ class _ItemsListState extends State<ItemsList> {
   @override
   Widget build(BuildContext context) {
     items = widget.items;
-    return Container(
-      height: MediaQuery.of(context).size.height - 269,
+    ItemsList.countList = List.generate(items.length, (index) => 0);
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 313,
       child: ListView.builder(
           padding: const EdgeInsets.all(8),
           itemCount: items.length,
@@ -55,24 +79,9 @@ class _ItemsListState extends State<ItemsList> {
                           color: Colors.blue),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(10.0),
-                      width: 100.0,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.black, width: 2.0),
-                              borderRadius: BorderRadius.circular(10.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.blue, width: 2.0),
-                              borderRadius: BorderRadius.circular(10.0)),
-                          labelText: "Count",
-                        ),
-                        controller: _controller,
-                      ),
-                    )
+                        padding: const EdgeInsets.all(10.0),
+                        width: 100.0,
+                        child: _buildList(index)),
                   ],
                 ),
               ),

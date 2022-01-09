@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final contoller = TextEditingController();
   List<String> acc = [];
   late bool isDeleteClicked;
   late List<bool> isChecked;
@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _controller.addListener(() => setState(() {}));
+    contoller.addListener(() => setState(() {}));
     acc = LocalData().getAccount() ?? [];
     isChecked = List.generate(acc.length, (index) => false);
     isDeleteClicked = false;
@@ -28,8 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void addAccound() {
     Navigator.of(context).pop();
-    _controller.text.isNotEmpty ? acc.add(_controller.text) : null;
-    _controller.clear();
+    contoller.text.isNotEmpty ? acc.add(contoller.text) : null;
+    contoller.clear();
     LocalData().setAccount(acc);
     setState(() {
       acc = LocalData().getAccount()!;
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    contoller.dispose();
     super.dispose();
   }
 
@@ -218,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(10.0)),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  height: 145.0,
+                  height: 160.0,
                   width: MediaQuery.of(context).size.width - 10,
                   child: Column(
                     children: [
@@ -237,12 +237,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         keyboardType: TextInputType.name,
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.account_balance_rounded),
-                          suffixIcon: _controller.text.isEmpty
+                          suffixIcon: contoller.text.isEmpty
                               ? Container(
                                   width: 0,
                                 )
                               : IconButton(
-                                  onPressed: () => _controller.clear(),
+                                  onPressed: () => contoller.clear(),
                                   icon: const Icon(
                                     Icons.close,
                                     color: Colors.red,
@@ -257,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(10.0)),
                           labelText: "Name",
                         ),
-                        controller: _controller,
+                        controller: contoller,
                       ),
                       const SizedBox(
                         height: 10.0,
@@ -268,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           TextButton(
                               onPressed: () => {
                                     Navigator.of(context).pop(),
-                                    _controller.clear()
+                                    contoller.clear()
                                   },
                               child: Text(
                                 'Back',

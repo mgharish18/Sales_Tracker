@@ -37,8 +37,16 @@ class _ItemsState extends State<Items> {
       LocalData().setItem(acc, _controller1.text, int.parse(_controller2.text));
       Navigator.pop(context);
       items = LocalData().getItem(acc);
-      setState(() {});
+      setState(() {
+        _controller1.text = '';
+        _controller2.text = '';
+      });
     }
+  }
+
+  void saveCount(String acc, List<int> countList) {
+    LocalData().saveCount(acc, date, time, countList);
+    print(LocalData().getSalesLog(acc).toString());
   }
 
   Future pickDate(BuildContext context) async {
@@ -82,7 +90,7 @@ class _ItemsState extends State<Items> {
                     borderRadius: BorderRadius.circular(10.0)),
                 child: Container(
                   padding: const EdgeInsets.all(10.0),
-                  height: 145.0,
+                  height: 170.0,
                   width: MediaQuery.of(context).size.width - 10.0,
                   child: Column(
                     children: [
@@ -98,7 +106,9 @@ class _ItemsState extends State<Items> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           SizedBox(
-                            width: (MediaQuery.of(context).size.width - 30) / 2,
+                            width:
+                                ((MediaQuery.of(context).size.width - 30) / 2) -
+                                    7.0,
                             child: TextField(
                               keyboardType: TextInputType.name,
                               decoration: InputDecoration(
@@ -187,6 +197,7 @@ class _ItemsState extends State<Items> {
   Widget build(BuildContext context) {
     final localizations = MaterialLocalizations.of(context);
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           backgroundColor: Colors.black,
           title: Text(
@@ -333,9 +344,23 @@ class _ItemsState extends State<Items> {
                         ),
                       ),
                     ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
                     ItemsList(items: items),
                   ],
                 ),
-              ));
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => saveCount(acc, ItemsList.countList),
+          child: Text(
+            'Save',
+            style: GoogleFonts.rajdhani(
+              fontSize: 20,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ));
   }
 }

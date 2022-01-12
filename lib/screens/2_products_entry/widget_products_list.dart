@@ -2,44 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-class ItemsList extends StatefulWidget {
+class ProductList extends StatefulWidget {
   final Map items;
   static late List<int> countList;
-  const ItemsList({Key? key, required this.items}) : super(key: key);
+  const ProductList({Key? key, required this.items}) : super(key: key);
 
   @override
-  _ItemsListState createState() => _ItemsListState();
+  _ProductListState createState() => _ProductListState();
 }
 
-class _ItemsListState extends State<ItemsList> {
+class _ProductListState extends State<ProductList> {
   late Map items;
 
   @override
   void initState() {
     super.initState();
-  }
-
-  Widget _buildList(int index) {
-    final TextEditingController _controller = TextEditingController();
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.black, width: 2.0),
-            borderRadius: BorderRadius.circular(10.0)),
-        focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.blue, width: 2.0),
-            borderRadius: BorderRadius.circular(10.0)),
-        labelText: "Count",
-      ),
-      controller: _controller,
-      onChanged: (value) => {
-        value.isNotEmpty
-            ? ItemsList.countList[index] = int.parse(value)
-            : ItemsList.countList[index] = 0,
-      },
-      onTap: null,
-    );
   }
 
   @override
@@ -50,7 +27,7 @@ class _ItemsListState extends State<ItemsList> {
   @override
   Widget build(BuildContext context) {
     items = widget.items;
-    ItemsList.countList = List.generate(items.length, (index) => 0);
+    ProductList.countList = List.generate(items.length, (index) => 0);
     return SizedBox(
       height: MediaQuery.of(context).size.height - 313,
       child: ListView.builder(
@@ -81,12 +58,35 @@ class _ItemsListState extends State<ItemsList> {
                     Container(
                         padding: const EdgeInsets.all(10.0),
                         width: 100.0,
-                        child: _buildList(index)),
+                        child: _buildCountField(index)),
                   ],
                 ),
               ),
             );
           }),
+    );
+  }
+
+  Widget _buildCountField(int index) {
+    final TextEditingController _controller = TextEditingController();
+    return TextField(
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.black, width: 2.0),
+            borderRadius: BorderRadius.circular(10.0)),
+        focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+            borderRadius: BorderRadius.circular(10.0)),
+        labelText: "Count",
+      ),
+      controller: _controller,
+      onChanged: (value) => {
+        value.isNotEmpty
+            ? ProductList.countList[index] = int.parse(value)
+            : ProductList.countList[index] = 0,
+      },
+      onTap: null,
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sales_records/screens/home.dart';
+import 'package:sales_records/screens/1_home/home.dart';
 
-import 'package:sales_records/shared_preferences.dart';
+import 'package:sales_records/storage/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

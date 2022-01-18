@@ -28,9 +28,9 @@ class _ProductListState extends State<ProductList> {
   Widget build(BuildContext context) {
     items = widget.items;
     ProductList.countList = List.generate(items.length, (index) => 0);
-    return SizedBox(
-      height: MediaQuery.of(context).size.height - 313,
+    return Expanded(
       child: ListView.builder(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(8),
           itemCount: items.length,
           itemBuilder: (BuildContext context, int index) {

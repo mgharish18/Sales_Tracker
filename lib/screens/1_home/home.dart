@@ -87,8 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  EntryPage(name: acc[index]))),
+                              builder: (context) => Account(name: acc[index]))),
                   child: Container(
                     height: 50,
                     width: MediaQuery.of(context).size.width,
@@ -259,10 +258,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         onPressed: () {
                           Navigator.of(context).pop();
                           acc = LocalData().getAccount()!;
+                          List<String> delAcc = [];
                           for (var i = 0; i < isChecked.length; i++) {
                             if (isChecked[i]) {
-                              acc.remove(acc[i]);
+                              delAcc.add(acc[i]);
                             }
+                          }
+                          for (var x in delAcc) {
+                            acc.remove(x);
                           }
 
                           LocalData().setAccount(acc);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:sales_records/screens/3_sales_history/table_screen.dart';
 
 import 'package:sales_records/storage/shared_preferences.dart';
 import 'package:sales_records/screens/2_products_entry/widget_products_list.dart';
@@ -21,7 +22,6 @@ class _EntryPageState extends State<EntryPage> {
   final TextEditingController _controller2 = TextEditingController();
   DateTime date = DateTime.now();
   TimeOfDay time = const TimeOfDay(hour: 10, minute: 0);
-  late int navigationIndex;
 
   @override
   void initState() {
@@ -31,7 +31,6 @@ class _EntryPageState extends State<EntryPage> {
     });
     acc = widget.name;
     items = LocalData().getItem(acc);
-    navigationIndex = 0;
   }
 
   void addItem() {
@@ -43,12 +42,15 @@ class _EntryPageState extends State<EntryPage> {
         _controller1.text = '';
         _controller2.text = '';
       });
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
   void saveCount(String acc, List<int> countList) {
-    LocalData().saveCount(acc, date, time, countList);
-    print(LocalData().getSalesLog(acc).toString());
+    setState(() {
+      LocalData().saveCount(acc, date, time, countList);
+    });
   }
 
   @override
@@ -141,66 +143,19 @@ class _EntryPageState extends State<EntryPage> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => saveCount(acc, ProductList.countList),
-        child: Text(
-          'Save',
-          style: GoogleFonts.rajdhani(
-            fontSize: 20,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-            labelTextStyle: MaterialStateProperty.all(
-              GoogleFonts.rajdhani(
-                fontSize: 15,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+      floatingActionButton: items.isNotEmpty
+          ? FloatingActionButton(
+              onPressed: () => saveCount(acc, ProductList.countList),
+              child: Text(
+                'Save',
+                style: GoogleFonts.rajdhani(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            indicatorColor: Colors.black),
-        child: NavigationBar(
-          height: 60.0,
-          onDestinationSelected: (value) => setState(() {
-            navigationIndex = value;
-          }),
-          selectedIndex: navigationIndex,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          destinations: const [
-            NavigationDestination(
-                icon: Icon(Icons.home_rounded),
-                selectedIcon: Icon(
-                  Icons.home_rounded,
-                  color: Colors.white,
-                ),
-                label: 'Home'),
-            NavigationDestination(
-                icon: Icon(Icons.note_alt_rounded),
-                selectedIcon: Icon(
-                  Icons.note_alt_rounded,
-                  color: Colors.white,
-                ),
-                label: 'Records'),
-            NavigationDestination(
-                icon: Icon(Icons.bar_chart_rounded),
-                selectedIcon: Icon(
-                  Icons.bar_chart_rounded,
-                  color: Colors.white,
-                ),
-                label: 'Graph'),
-            NavigationDestination(
-                icon: Icon(Icons.price_change_rounded),
-                selectedIcon: Icon(
-                  Icons.price_change_rounded,
-                  color: Colors.white,
-                ),
-                label: 'Statement')
-          ],
-        ),
-      ),
+            )
+          : null,
     );
   }
 
@@ -240,107 +195,100 @@ class _EntryPageState extends State<EntryPage> {
         context: context,
         builder: (BuildContext buildContext) {
           return Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0)),
-            child: Container(
-              padding: const EdgeInsets.all(10.0),
-              height: 170.0,
-              width: MediaQuery.of(context).size.width - 10.0,
-              child: Column(
-                children: [
-                  Text(
-                    "Add a new Item",
-                    style: GoogleFonts.rajdhani(
-                        fontWeight: FontWeight.bold, fontSize: 20.0),
-                  ),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0)),
+              child: FittedBox(
+                child: Container(
+                  padding: const EdgeInsets.all(10.0),
+                  width: MediaQuery.of(context).size.width - 10.0,
+                  child: Column(
                     children: [
-                      SizedBox(
-                        width: ((MediaQuery.of(context).size.width - 30) / 2) -
-                            7.0,
-                        child: TextField(
-                          keyboardType: TextInputType.name,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.fastfood_rounded),
-                            suffixIcon: _controller1.text.isEmpty
-                                ? Container(
-                                    width: 0,
-                                  )
-                                : IconButton(
-                                    onPressed: () => _controller1.clear(),
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: Colors.red,
-                                    )),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.black, width: 2.0),
-                                borderRadius: BorderRadius.circular(10.0)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.blue, width: 2.0),
-                                borderRadius: BorderRadius.circular(10.0)),
-                            labelText: "Name",
-                          ),
-                          controller: _controller1,
-                        ),
+                      Text(
+                        "Add a new Item",
+                        style: GoogleFonts.rajdhani(
+                            fontWeight: FontWeight.bold, fontSize: 20.0),
                       ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width - 30) / 3,
-                        child: TextField(
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.price_change_rounded),
-                            suffixIcon: _controller2.text.isEmpty
-                                ? Container(
-                                    width: 0,
-                                  )
-                                : IconButton(
-                                    onPressed: () => _controller2.clear(),
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: Colors.red,
-                                    )),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.black, width: 2.0),
-                                borderRadius: BorderRadius.circular(10.0)),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.blue, width: 2.0),
-                                borderRadius: BorderRadius.circular(10.0)),
-                            labelText: "Price",
+                      const SizedBox(
+                        height: 10.0,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
+                            width: (2 *
+                                    (MediaQuery.of(context).size.width - 30) /
+                                    3) -
+                                7.0,
+                            child: TextField(
+                              keyboardType: TextInputType.name,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.fastfood_rounded),
+                                suffixIcon: _controller1.text.isEmpty
+                                    ? Container(
+                                        width: 0,
+                                      )
+                                    : IconButton(
+                                        onPressed: () => _controller1.clear(),
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        )),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        color: Colors.black, width: 2.0),
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        color: Colors.blue, width: 2.0),
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                labelText: "Name",
+                              ),
+                              controller: _controller1,
+                            ),
                           ),
-                          controller: _controller2,
-                        ),
-                      )
+                          SizedBox(
+                            width: (MediaQuery.of(context).size.width - 30) / 3,
+                            child: TextField(
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                prefixIcon:
+                                    const Icon(Icons.price_change_rounded),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        color: Colors.black, width: 2.0),
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        color: Colors.blue, width: 2.0),
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                labelText: "Price",
+                              ),
+                              controller: _controller2,
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10.0,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                              onPressed: () => addItem(),
+                              child: Text(
+                                "ADD",
+                                style: GoogleFonts.rajdhani(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20.0,
+                                    color: Colors.blue),
+                              )),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                          onPressed: () => addItem(),
-                          child: Text(
-                            "ADD",
-                            style: GoogleFonts.rajdhani(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
-                                color: Colors.blue),
-                          )),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
+                ),
+              ));
         });
   }
 
@@ -419,6 +367,87 @@ class _EntryPageState extends State<EntryPage> {
                   Icons.arrow_drop_down_sharp,
                   color: Colors.white,
                 )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class Account extends StatefulWidget {
+  final String name;
+  const Account({Key? key, required this.name}) : super(key: key);
+
+  @override
+  State<Account> createState() => _AccountState();
+}
+
+class _AccountState extends State<Account> {
+  late int navigationIndex;
+  late String acc;
+  late List<StatefulWidget> screens;
+
+  @override
+  void initState() {
+    super.initState();
+    navigationIndex = 0;
+    acc = widget.name;
+    screens = [EntryPage(name: acc), SalesTable(name: acc)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        children: screens,
+        index: navigationIndex,
+      ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+            labelTextStyle: MaterialStateProperty.all(
+              GoogleFonts.rajdhani(
+                fontSize: 15,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            indicatorColor: Colors.black),
+        child: NavigationBar(
+          height: 60.0,
+          onDestinationSelected: (value) => setState(() {
+            navigationIndex = value;
+          }),
+          selectedIndex: navigationIndex,
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          destinations: const [
+            NavigationDestination(
+                icon: Icon(Icons.home_rounded),
+                selectedIcon: Icon(
+                  Icons.home_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Icon(Icons.note_alt_rounded),
+                selectedIcon: Icon(
+                  Icons.note_alt_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Records'),
+            NavigationDestination(
+                icon: Icon(Icons.bar_chart_rounded),
+                selectedIcon: Icon(
+                  Icons.bar_chart_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Graph'),
+            NavigationDestination(
+                icon: Icon(Icons.price_change_rounded),
+                selectedIcon: Icon(
+                  Icons.price_change_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Statement')
           ],
         ),
       ),

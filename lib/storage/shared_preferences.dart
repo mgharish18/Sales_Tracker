@@ -1,4 +1,5 @@
 import 'dart:convert';
+import "dart:collection";
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalData {
   static late SharedPreferences account;
   Map itemmap = {};
-  Map value = {};
+  Map temp = {};
+  SplayTreeMap value = SplayTreeMap();
 
   Future init() async {
     return account = await SharedPreferences.getInstance();
@@ -41,8 +43,12 @@ class LocalData {
     await account.setString(key, jsonEncode(value));
   }
 
-  Map getSalesLog(String acc) {
+  SplayTreeMap getSalesLog(String acc) {
     String key = acc + 'SalesLog';
-    return jsonDecode(account.getString(key) ?? jsonEncode(value));
+    temp = jsonDecode(account.getString(key) ?? jsonEncode(value));
+    temp.forEach((key, values) {
+      value[key] = values;
+    });
+    return value;
   }
 }

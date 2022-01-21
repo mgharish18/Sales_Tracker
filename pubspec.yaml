@@ -38,6 +38,7 @@ dependencies:
   google_fonts: ^2.2.0
   intl: ^0.17.0
   syncfusion_flutter_datagrid: ^19.4.43
+  syncfusion_flutter_charts: ^19.4.43
 
 dev_dependencies:
   flutter_test:

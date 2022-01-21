@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:sales_records/screens/3_sales_history/table_screen.dart';
+import 'package:sales_records/screens/4_statisticts_graph/sales_graph.dart';
 
 import 'package:sales_records/storage/shared_preferences.dart';
 import 'package:sales_records/screens/2_products_entry/widget_products_list.dart';
@@ -294,8 +295,7 @@ class _EntryPageState extends State<EntryPage> {
 
   Widget _buildDate() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 50.0),
-      width: MediaQuery.of(context).size.width,
+      width: MediaQuery.of(context).size.width - 30,
       height: 40.0,
       decoration: BoxDecoration(
           color: Colors.black, borderRadius: BorderRadius.circular(10.0)),
@@ -335,8 +335,7 @@ class _EntryPageState extends State<EntryPage> {
   Widget _buildTime() {
     final localizations = MaterialLocalizations.of(context);
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 50.0),
-      width: MediaQuery.of(context).size.width,
+      width: MediaQuery.of(context).size.width - 30,
       height: 40.0,
       decoration: BoxDecoration(
           color: Colors.black, borderRadius: BorderRadius.circular(10.0)),
@@ -392,12 +391,18 @@ class _AccountState extends State<Account> {
     super.initState();
     navigationIndex = 0;
     acc = widget.name;
-    screens = [EntryPage(name: acc), SalesTable(name: acc)];
+    screens = [
+      EntryPage(name: acc),
+      SalesTable(name: acc),
+      GraphPage(name: acc),
+      SalesTable(name: acc),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: null,
       body: IndexedStack(
         children: screens,
         index: navigationIndex,

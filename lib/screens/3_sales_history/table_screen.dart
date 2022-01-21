@@ -57,7 +57,7 @@ class _SalesTableState extends State<SalesTable> {
         appBar: AppBar(
           backgroundColor: Colors.black,
           title: Text(
-            acc,
+            'Records',
             style: GoogleFonts.rajdhani(
                 fontSize: 25.0, fontWeight: FontWeight.bold),
           ),

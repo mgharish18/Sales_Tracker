@@ -50,6 +50,7 @@ class _EntryPageState extends State<EntryPage> {
 
   void saveCount(String acc, List<int> countList) {
     setState(() {
+      FocusManager.instance.primaryFocus?.unfocus();
       LocalData().saveCount(acc, date, time, countList);
     });
   }
@@ -150,7 +151,6 @@ class _EntryPageState extends State<EntryPage> {
               child: Text(
                 'Save',
                 style: GoogleFonts.rajdhani(
-                  fontSize: 20,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -296,7 +296,6 @@ class _EntryPageState extends State<EntryPage> {
   Widget _buildDate() {
     return Container(
       width: MediaQuery.of(context).size.width - 30,
-      height: 40.0,
       decoration: BoxDecoration(
           color: Colors.black, borderRadius: BorderRadius.circular(10.0)),
       child: Center(
@@ -336,7 +335,6 @@ class _EntryPageState extends State<EntryPage> {
     final localizations = MaterialLocalizations.of(context);
     return Container(
       width: MediaQuery.of(context).size.width - 30,
-      height: 40.0,
       decoration: BoxDecoration(
           color: Colors.black, borderRadius: BorderRadius.circular(10.0)),
       child: Center(

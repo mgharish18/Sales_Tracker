@@ -266,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                           for (var x in delAcc) {
                             acc.remove(x);
+                            LocalData().deleteAccount(x);
                           }
 
                           LocalData().setAccount(acc);

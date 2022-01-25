@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:sales_records/screens/3_sales_history/table_screen.dart';
 import 'package:sales_records/screens/4_statisticts_graph/sales_graph.dart';
+import 'package:sales_records/screens/5_statement/st_page.dart';
 
 import 'package:sales_records/storage/shared_preferences.dart';
 import 'package:sales_records/screens/2_products_entry/widget_products_list.dart';
@@ -393,8 +394,13 @@ class _AccountState extends State<Account> {
       EntryPage(name: acc),
       SalesTable(name: acc),
       GraphPage(name: acc),
-      SalesTable(name: acc),
+      StatementPage(name: acc),
     ];
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override

@@ -103,11 +103,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Icon(Icons.account_balance_rounded),
-                        Text(acc[index],
+                        const SizedBox(
+                          width: 15.0,
+                        ),
+                        Expanded(
+                          child: Text(
+                            acc[index],
                             style: GoogleFonts.rajdhani(
                                 fontSize: 25.0,
                                 color: Colors.black,
-                                fontWeight: FontWeight.bold)),
+                                fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         isDeleteClicked
                             ? Checkbox(
                                 fillColor:

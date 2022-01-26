@@ -73,6 +73,7 @@ class _EntryPageState extends State<EntryPage> {
           acc,
           style:
               GoogleFonts.rajdhani(fontSize: 25.0, fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
         ),
         centerTitle: true,
         actions: [
@@ -317,6 +318,7 @@ class _EntryPageState extends State<EntryPage> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
               onPressed: () => pickDate(context),
             ),
@@ -356,6 +358,7 @@ class _EntryPageState extends State<EntryPage> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
               onPressed: () => pickTime(context),
             ),

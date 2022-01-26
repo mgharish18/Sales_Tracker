@@ -48,12 +48,15 @@ class _ProductListState extends State<ProductList> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      items.keys.toList()[index],
-                      style: GoogleFonts.rajdhani(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30.0,
-                          color: Colors.blue),
+                    Expanded(
+                      child: Text(
+                        items.keys.toList()[index],
+                        style: GoogleFonts.rajdhani(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 30.0,
+                            color: Colors.blue),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     Container(
                         padding: const EdgeInsets.all(10.0),

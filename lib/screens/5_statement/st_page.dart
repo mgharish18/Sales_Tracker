@@ -19,7 +19,9 @@ class _StatementPageState extends State<StatementPage>
   DateTimeRange? date;
   late Map items;
   List header = [];
+  List<String> prColunm = ['Products', 'Count', 'Amount'];
   late TabController controller;
+  final cf = NumberFormat("##,##,##0.00", "en_US");
 
   @override
   void initState() {
@@ -159,6 +161,35 @@ class _StatementPageState extends State<StatementPage>
           );
   }
 
+  Widget buildPrTable(DateTimeRange date) {
+    return SfDataGridTheme(
+      data: SfDataGridThemeData(
+        gridLineStrokeWidth: 1.5,
+        frozenPaneElevation: 0.0,
+        frozenPaneLineWidth: 1.5,
+      ),
+      child: SfDataGrid(
+        footer: Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Total:  \u{20B9} ${cf.format(PrGridSource(account: acc, date: date, column: prColunm).total)}',
+              style: GoogleFonts.rajdhani(
+                  fontSize: 20.0, fontWeight: FontWeight.bold),
+            )),
+        source: PrGridSource(account: acc, date: date, column: prColunm),
+        columns: getPrColumn(),
+        verticalScrollPhysics: const BouncingScrollPhysics(),
+        horizontalScrollPhysics: const BouncingScrollPhysics(),
+        allowSorting: true,
+        frozenColumnsCount: 1,
+        columnWidthMode: ColumnWidthMode.auto,
+        allowPullToRefresh: true,
+        headerGridLinesVisibility: GridLinesVisibility.horizontal,
+        gridLinesVisibility: GridLinesVisibility.none,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,7 +239,11 @@ class _StatementPageState extends State<StatementPage>
                       : const SizedBox(
                           height: 0,
                         ),
-                  const Text('No content'),
+                  date != null
+                      ? Center(child: buildPrTable(date!))
+                      : const SizedBox(
+                          height: 0,
+                        ),
                 ]),
               )
             ],
@@ -254,6 +289,23 @@ class _StatementPageState extends State<StatementPage>
             )))
         .toList();
   }
+
+  List<GridColumn> getPrColumn() {
+    return prColunm
+        .map((e) => GridColumn(
+            columnName: e,
+            label: Center(
+              child: Text(
+                e,
+                style: GoogleFonts.rajdhani(
+                    fontSize: 25.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            )))
+        .toList();
+  }
 }
 
 class GridSource extends DataGridSource {
@@ -261,12 +313,14 @@ class GridSource extends DataGridSource {
     dataGridRowsList = getRows(account, date);
   }
   late List<DataGridRow> dataGridRowsList;
+  late List<List> prGridInfo;
   @override
   List<DataGridRow> get rows => dataGridRowsList;
 
   List<DataGridRow> getRows(String acc, DateTimeRange date) {
     List<DataGridRow> dataRow = [];
     Map countMap = LocalData().getSalesLog(acc);
+    prGridInfo = [];
 
     for (var key in countMap.keys) {
       DateTime datetime = DateTime.parse(key);
@@ -284,6 +338,7 @@ class GridSource extends DataGridSource {
         while (datacell.length < items.length + 2) {
           datacell.add('0');
         }
+        prGridInfo.add(datacell);
         var header = ['DATE', 'TIME'];
         Map itemMap = LocalData().getItem(acc);
         for (var element in itemMap.keys) {
@@ -306,6 +361,69 @@ class GridSource extends DataGridSource {
         return Center(
             child: Text(
           e.value,
+          style: GoogleFonts.rajdhani(
+              fontSize: 15.0, color: Colors.black, fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ));
+      }).toList());
+}
+
+class PrGridSource extends DataGridSource {
+  PrGridSource(
+      {required this.account,
+      required DateTimeRange date,
+      required this.column}) {
+    prGridRows = getRows(GridSource(account: account, date: date).prGridInfo);
+  }
+  late List<DataGridRow> prGridRows;
+  String account;
+  List<String> column;
+  final cf = NumberFormat("#,##,##0.00", "en_US");
+  int total = 0;
+
+  @override
+  List<DataGridRow> get rows => prGridRows;
+
+  List<DataGridRow> getRows(List<List> prGridInfo) {
+    Map items = LocalData().getItem(account);
+    List<List> row =
+        List.generate(items.length, (index) => List.generate(3, (index) => 0));
+
+    int i = 0;
+    for (var key in items.keys) {
+      row[i][0] = key.toString().toUpperCase();
+      i++;
+    }
+    for (var x in prGridInfo) {
+      for (int i = 2; i < x.length; i++) {
+        row[i - 2][1] = row[i - 2][1] + int.parse(x[i].toString());
+      }
+    }
+    i = 0;
+    for (var value in items.values) {
+      row[i][2] = row[i][1] * int.parse(value.toString());
+      i++;
+    }
+    for (var x in row) {
+      total += int.parse(x[2].toString());
+      x[2] = '\u{20B9} ' + cf.format(x[2]);
+    }
+
+    return row
+        .map((list) => DataGridRow(
+            cells: list
+                .map((e) =>
+                    DataGridCell(columnName: column[list.indexOf(e)], value: e))
+                .toList()))
+        .toList();
+  }
+
+  @override
+  DataGridRowAdapter? buildRow(DataGridRow row) => DataGridRowAdapter(
+          cells: row.getCells().map((e) {
+        return Center(
+            child: Text(
+          e.value.toString(),
           style: GoogleFonts.rajdhani(
               fontSize: 15.0, color: Colors.black, fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,

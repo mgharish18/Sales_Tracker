@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sales_records/screens/2_products_entry/entry_screen.dart';
@@ -20,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    contoller.addListener(() => setState(() {}));
+    // contoller.addListener(() => setState(() {}));
     acc = LocalData().getAccount() ?? [];
     isChecked = List.generate(acc.length, (index) => false);
     isDeleteClicked = false;
@@ -39,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    contoller.dispose();
     super.dispose();
   }
 
@@ -54,16 +54,34 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          acc.isNotEmpty
+          isDeleteClicked
               ? IconButton(
                   onPressed: () => setState(() {
                         isDeleteClicked = !isDeleteClicked;
                       }),
-                  icon: !isDeleteClicked
-                      ? const Icon(Icons.delete)
-                      : const Icon(Icons.arrow_back_ios_new_rounded))
-              : Container(
-                  width: 0,
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded))
+              : PopupMenuButton(
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 0,
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.logout_rounded,
+                            color: Colors.black,
+                          ),
+                          SizedBox(
+                            width: 3.0,
+                          ),
+                          Text(
+                            'Logout',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      onTap: () => FirebaseAuth.instance.signOut(),
+                    )
+                  ],
                 )
         ],
       ),
@@ -88,6 +106,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => Account(name: acc[index]))),
+                  onLongPress: () => setState(
+                    () {
+                      isDeleteClicked = !isDeleteClicked;
+                    },
+                  ),
                   child: Container(
                     height: 50,
                     width: MediaQuery.of(context).size.width,

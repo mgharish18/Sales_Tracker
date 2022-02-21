@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "548911980877",
+    "project_id": "sales-record-keeper",
+    "storage_bucket": "sales-record-keeper.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:548911980877:android:3f228c733fcfba75881704",
+        "android_client_info": {
+          "package_name": "com.example.sales_records"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "548911980877-q68smg70cmd08a079brjntq1gnumvvt6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-3Dzs2_lXIOLsoomVVAk5cooHZkovuSk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "548911980877-q68smg70cmd08a079brjntq1gnumvvt6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "548911980877-np6mdgacho7c0st8g8i51b4vs56soqgr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.salesRecords"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

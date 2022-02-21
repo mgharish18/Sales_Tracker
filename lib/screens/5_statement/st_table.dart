@@ -7,7 +7,6 @@ import 'package:sales_records/screens/5_statement/file_display.dart';
 import 'package:sales_records/storage/shared_preferences.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 class StTable extends StatefulWidget {
   final String account;
@@ -76,20 +75,20 @@ class _StTableState extends State<StTable> {
             'PDF',
             style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold),
           ),
-          onPressed: _createPdf),
+          onPressed: null),
     );
   }
 
-  Future<void> _createPdf() async {
-    PdfDocument document = PdfDocument();
-    if (_key.currentState != null) {
-      document = _key.currentState!.exportToPdfDocument();
-      List<int> bytes = document.save();
-      document.dispose();
+  // Future<void> _createPdf() async {
+  //   PdfDocument document = PdfDocument();
+  //   if (_key.currentState != null) {
+  //     document = _key.currentState!.exportToPdfDocument();
+  //     List<int> bytes = document.save();
+  //     document.dispose();
 
-      saveLaunchFile(bytes, 'output.pdf');
-    }
-  }
+  //     saveLaunchFile(bytes, 'output.pdf');
+  //   }
+  // }
 
   List<GridColumn> get getColumns {
     header = ['DATE', 'TIME'];
@@ -236,11 +235,13 @@ class _PrTableState extends State<PrTable> {
             'PDF',
             style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold),
           ),
-          onPressed: () {
-            PdfDocument document = key.currentState!.exportToPdfDocument();
-            final List<int> bytes = document.save();
-            File('Statement.pdf').writeAsBytes(bytes);
-          }),
+          onPressed: null
+          // () {
+          //   PdfDocument document = key.currentState!.exportToPdfDocument();
+          //   final List<int> bytes = document.save();
+          //   File('Statement.pdf').writeAsBytes(bytes);
+          // }
+          ),
     );
   }
 

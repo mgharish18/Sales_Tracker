@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sales_records/screens/0_login/login_page.dart';
+import 'package:sales_records/storage/firebase.dart';
 
 import 'package:sales_records/storage/shared_preferences.dart';
 
@@ -12,7 +13,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-final navigatorKey = GlobalKey<NavigatorState>();
+final mainNavigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -24,7 +25,8 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.rajdhaniTextTheme(Theme.of(context).textTheme),
       ),
       debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: messengerKey,
+      navigatorKey: mainNavigatorKey,
       home: const Login(),
     );
   }

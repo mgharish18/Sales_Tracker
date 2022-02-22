@@ -14,7 +14,8 @@ Future<void> sigin(context, email, password) async {
     await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: password);
   } on FirebaseAuthException catch (e) {
-    Utils.showSnackBar(e.message);
+    mainNavigatorKey.currentState!.pop();
+    return Utils.showSnackBar(e.message);
   }
   mainNavigatorKey.currentState!.popUntil((route) => route.isFirst);
 }
@@ -45,6 +46,40 @@ Future sigup(context, formKey, email, password) async {
   ));
 
   ScaffoldMessenger.of(context).showSnackBar(snackbar);
+}
+
+Future resetPassword(context, formKey, email) async {
+  FocusScope.of(context).unfocus();
+  final isValid = formKey.currentState!.validate();
+  if (!isValid) return;
+  showDialog(
+      context: context,
+      builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+      barrierDismissible: false);
+  try {
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+  } on FirebaseAuthException catch (e) {
+    mainNavigatorKey.currentState!.pop();
+    return Utils.showSnackBar(e.message);
+  }
+  mainNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+  const snackbar = SnackBar(
+      content: Text(
+    'Email sent Successfully',
+    style: TextStyle(fontWeight: FontWeight.bold),
+  ));
+
+  ScaffoldMessenger.of(context).showSnackBar(snackbar);
+}
+
+Future sendVerificationEmail() async {
+  try {
+    await FirebaseAuth.instance.currentUser!.sendEmailVerification();
+  } catch (e) {
+    Utils.showSnackBar(e.toString());
+  }
 }
 
 final messengerKey = GlobalKey<ScaffoldMessengerState>();

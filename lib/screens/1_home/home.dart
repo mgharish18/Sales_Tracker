@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sales_records/screens/2_products_entry/entry_screen.dart';
 
+import 'package:sales_records/screens/2_products_entry/entry_screen.dart';
 import 'package:sales_records/storage/shared_preferences.dart';
+import 'package:sales_records/main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -79,7 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      onTap: () => FirebaseAuth.instance.signOut(),
+                      onTap: () => {
+                        FirebaseAuth.instance.signOut(),
+                      },
                     )
                   ],
                 )

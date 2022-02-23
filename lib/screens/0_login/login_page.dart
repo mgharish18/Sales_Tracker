@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sales_records/screens/1_home/home.dart';
-import 'package:sales_records/storage/firebase.dart';
+import 'package:sales_records/storage/firebase_auth.dart';
 import 'package:email_validator/email_validator.dart';
 
 class Login extends StatefulWidget {

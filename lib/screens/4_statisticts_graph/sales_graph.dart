@@ -1,12 +1,12 @@
 import "dart:collection";
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sales_records/storage/firebase_database.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
-
-import 'package:sales_records/storage/shared_preferences.dart';
 
 class GraphPage extends StatefulWidget {
   final String name;
@@ -21,12 +21,12 @@ class _GraphPageState extends State<GraphPage> {
   static late List<GraphData> gDataList;
   late Map items;
   late TooltipBehavior _tooltipBehavior;
+  SplayTreeMap supply = SplayTreeMap();
 
   @override
   void initState() {
     super.initState();
     acc = widget.name;
-    gDataList = getGraphData();
     _tooltipBehavior = TooltipBehavior(enable: true);
   }
 
@@ -68,58 +68,84 @@ class _GraphPageState extends State<GraphPage> {
           centerTitle: true,
           actions: [
             IconButton(
-                onPressed: () => setState(() {
-                      gDataList = getGraphData();
-                    }),
-                icon: const Icon(Icons.refresh_rounded))
+                onPressed: () => null, icon: const Icon(Icons.refresh_rounded))
           ],
         ),
-        body: SafeArea(
-          child: LocalData().getSalesLog(acc).isNotEmpty
-              ? SfCartesianChart(
-                  title: ChartTitle(
-                    text: 'Daily Sales Analysis',
-                    textStyle: GoogleFonts.rajdhani(
-                        fontWeight: FontWeight.bold, fontSize: 20.0),
-                  ),
-                  legend: Legend(
-                    isVisible: true,
-                    textStyle: GoogleFonts.rajdhani(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 20.0),
-                    isResponsive: true,
-                  ),
-                  tooltipBehavior: _tooltipBehavior,
-                  zoomPanBehavior: ZoomPanBehavior(
-                      enablePinching: true, zoomMode: ZoomMode.x),
-                  series: getLineSeries(gDataList, items),
-                  primaryXAxis: DateTimeAxis(
-                      labelStyle: GoogleFonts.rajdhani(
-                          fontWeight: FontWeight.bold, color: Colors.black),
-                      dateFormat: DateFormat('d/M'),
-                      edgeLabelPlacement: EdgeLabelPlacement.shift,
-                      title: AxisTitle(
-                        text: 'Date',
-                        textStyle:
-                            GoogleFonts.rajdhani(fontWeight: FontWeight.bold),
-                      )),
-                  primaryYAxis: NumericAxis(
-                      labelStyle: GoogleFonts.rajdhani(
-                          fontWeight: FontWeight.bold, color: Colors.black),
-                      title: AxisTitle(
-                        text: 'Sales Count',
-                        textStyle:
-                            GoogleFonts.rajdhani(fontWeight: FontWeight.bold),
-                      )),
-                )
-              : SfCartesianChart(),
+        body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: getDocStream(acc),
+          builder: (context,
+              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null) {
+                Map<String, dynamic>? data = snapshot.data!.data();
+                if (data != null) {
+                  items = data['product'];
+                  Map temp = data['supply'];
+                  temp.forEach((key, values) {
+                    supply[key] = values;
+                  });
+                } else {
+                  items = {};
+                  supply = SplayTreeMap();
+                }
+                gDataList = getGraphData(items, supply);
+              } else {
+                items = {};
+                supply = SplayTreeMap();
+              }
+              return supply.isNotEmpty
+                  ? SfCartesianChart(
+                      title: ChartTitle(
+                        text: 'Daily Sales Analysis',
+                        textStyle: GoogleFonts.rajdhani(
+                            fontWeight: FontWeight.bold, fontSize: 20.0),
+                      ),
+                      legend: Legend(
+                        isVisible: true,
+                        textStyle: GoogleFonts.rajdhani(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 20.0),
+                        isResponsive: true,
+                      ),
+                      tooltipBehavior: _tooltipBehavior,
+                      zoomPanBehavior: ZoomPanBehavior(
+                          enablePinching: true, zoomMode: ZoomMode.x),
+                      series: getLineSeries(gDataList, items),
+                      primaryXAxis: DateTimeAxis(
+                          labelStyle: GoogleFonts.rajdhani(
+                              fontWeight: FontWeight.bold, color: Colors.black),
+                          dateFormat: DateFormat('d/M'),
+                          edgeLabelPlacement: EdgeLabelPlacement.shift,
+                          title: AxisTitle(
+                            text: 'Date',
+                            textStyle: GoogleFonts.rajdhani(
+                                fontWeight: FontWeight.bold),
+                          )),
+                      primaryYAxis: NumericAxis(
+                          labelStyle: GoogleFonts.rajdhani(
+                              fontWeight: FontWeight.bold, color: Colors.black),
+                          title: AxisTitle(
+                            text: 'Sales Count',
+                            textStyle: GoogleFonts.rajdhani(
+                                fontWeight: FontWeight.bold),
+                          )),
+                    )
+                  : SfCartesianChart();
+            } else if (snapshot.hasError) {
+              return const Center(
+                child: Text('Something went worng'),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
         ));
   }
 
-  List<GraphData> getGraphData() {
-    SplayTreeMap data = LocalData().getSalesLog(acc);
-    items = LocalData().getItem(acc);
+  List<GraphData> getGraphData(Map items, SplayTreeMap data) {
     List<String> allDates = [];
     List<List> allCounts = [];
     data.forEach((key, value) {

@@ -1,10 +1,12 @@
+import 'dart:collection';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:sales_records/screens/5_statement/file_display.dart';
-import 'package:sales_records/storage/shared_preferences.dart';
+import 'package:sales_records/storage/firebase_database.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 
@@ -25,6 +27,7 @@ class _StTableState extends State<StTable> {
   late String acc;
   late DateTimeRange date;
   final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
+  SplayTreeMap supply = SplayTreeMap();
 
   @override
   void initState() {
@@ -36,40 +39,60 @@ class _StTableState extends State<StTable> {
   @override
   Widget build(BuildContext context) {
     date = widget.date!;
-    items = LocalData().getItem(acc);
     return Scaffold(
-      body: items.isNotEmpty
-          ? SfDataGridTheme(
-              data: SfDataGridThemeData(
-                gridLineColor: Colors.black54,
-                gridLineStrokeWidth: 1.5,
-                frozenPaneElevation: 0.0,
-                frozenPaneLineColor: Colors.black54,
-                frozenPaneLineWidth: 1.5,
-              ),
-              child: SfDataGrid(
-                  key: _key,
-                  columns: getColumns,
-                  source: GridSource(account: acc, date: date),
-                  verticalScrollPhysics: const BouncingScrollPhysics(),
-                  horizontalScrollPhysics: const BouncingScrollPhysics(),
-                  allowSorting: true,
-                  frozenColumnsCount: 2,
-                  columnWidthMode: ColumnWidthMode.auto,
-                  allowPullToRefresh: true,
-                  gridLinesVisibility: GridLinesVisibility.none,
-                  headerGridLinesVisibility: GridLinesVisibility.horizontal),
-            )
-          : Center(
-              child: Text(
-                'Add Your Products',
-                style: GoogleFonts.rajdhani(
-                  fontSize: 25,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: getDocStream(acc),
+          builder: (context,
+              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null) {
+                Map<String, dynamic>? data = snapshot.data!.data();
+                if (data != null) {
+                  items = data['product'];
+                  Map temp = data['supply'];
+                  temp.forEach((key, values) {
+                    supply[key] = values;
+                  });
+                } else {
+                  items = {};
+                  supply = SplayTreeMap();
+                }
+              } else {
+                items = {};
+                supply = SplayTreeMap();
+              }
+              return SfDataGridTheme(
+                data: SfDataGridThemeData(
+                  gridLineColor: Colors.black54,
+                  gridLineStrokeWidth: 1.5,
+                  frozenPaneElevation: 0.0,
+                  frozenPaneLineColor: Colors.black54,
+                  frozenPaneLineWidth: 1.5,
                 ),
-              ),
-            ),
+                child: SfDataGrid(
+                    key: _key,
+                    columns: getColumns(items),
+                    source: GridSource(
+                        account: acc, date: date, item: items, supply: supply),
+                    verticalScrollPhysics: const BouncingScrollPhysics(),
+                    horizontalScrollPhysics: const BouncingScrollPhysics(),
+                    allowSorting: true,
+                    frozenColumnsCount: 2,
+                    columnWidthMode: ColumnWidthMode.auto,
+                    allowPullToRefresh: true,
+                    gridLinesVisibility: GridLinesVisibility.none,
+                    headerGridLinesVisibility: GridLinesVisibility.horizontal),
+              );
+            } else if (snapshot.hasError) {
+              return const Center(
+                child: Text('Something went worng'),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }),
       floatingActionButton: FloatingActionButton(
           child: Text(
             'PDF',
@@ -90,9 +113,8 @@ class _StTableState extends State<StTable> {
   //   }
   // }
 
-  List<GridColumn> get getColumns {
+  List<GridColumn> getColumns(Map itemMap) {
     header = ['DATE', 'TIME'];
-    Map itemMap = LocalData().getItem(acc);
     for (var element in itemMap.keys) {
       header.add(element.toString().toUpperCase());
     }
@@ -114,17 +136,21 @@ class _StTableState extends State<StTable> {
 }
 
 class GridSource extends DataGridSource {
-  GridSource({required String account, required DateTimeRange date}) {
-    dataGridRowsList = getRows(account, date);
+  GridSource(
+      {required String account,
+      required DateTimeRange date,
+      required Map item,
+      required SplayTreeMap supply}) {
+    dataGridRowsList = getRows(account, date, item, supply);
   }
   late List<DataGridRow> dataGridRowsList;
   late List<List> prGridInfo;
   @override
   List<DataGridRow> get rows => dataGridRowsList;
 
-  List<DataGridRow> getRows(String acc, DateTimeRange date) {
+  List<DataGridRow> getRows(
+      String acc, DateTimeRange date, Map items, Map countMap) {
     List<DataGridRow> dataRow = [];
-    Map countMap = LocalData().getSalesLog(acc);
     prGridInfo = [];
 
     for (var key in countMap.keys) {
@@ -136,7 +162,6 @@ class GridSource extends DataGridSource {
         List<String> datacell = [];
         datacell.add(DateFormat('d/M/yy').format(datetime));
         datacell.add(DateFormat.jm().format(datetime));
-        var items = LocalData().getItem(acc);
         for (var x in countMap[key]) {
           datacell.add('$x');
         }
@@ -145,8 +170,7 @@ class GridSource extends DataGridSource {
         }
         prGridInfo.add(datacell);
         var header = ['DATE', 'TIME'];
-        Map itemMap = LocalData().getItem(acc);
-        for (var element in itemMap.keys) {
+        for (var element in items.keys) {
           header.add(element.toString().toUpperCase());
         }
         dataRow.add(DataGridRow(
@@ -191,6 +215,7 @@ class _PrTableState extends State<PrTable> {
   final cf = NumberFormat("##,##,##0.00", "en_US");
   List<String> prColunm = ['Products', 'Count', 'Amount'];
   final GlobalKey<SfDataGridState> key = GlobalKey<SfDataGridState>();
+  SplayTreeMap supply = SplayTreeMap();
 
   @override
   void initState() {
@@ -201,35 +226,70 @@ class _PrTableState extends State<PrTable> {
   @override
   Widget build(BuildContext context) {
     date = widget.date!;
-    items = LocalData().getItem(acc);
     return Scaffold(
-      body: SfDataGridTheme(
-        data: SfDataGridThemeData(
-          gridLineStrokeWidth: 1.5,
-          frozenPaneElevation: 0.0,
-          frozenPaneLineWidth: 1.5,
-        ),
-        child: SfDataGrid(
-          key: key,
-          footer: Align(
-              alignment: Alignment.center,
-              child: Text(
-                'Total:  \u{20B9} ${cf.format(PrGridSource(account: acc, date: date, column: prColunm).total)}',
-                style: GoogleFonts.rajdhani(
-                    fontSize: 20.0, fontWeight: FontWeight.bold),
-              )),
-          source: PrGridSource(account: acc, date: date, column: prColunm),
-          columns: getPrColumn(),
-          verticalScrollPhysics: const BouncingScrollPhysics(),
-          horizontalScrollPhysics: const BouncingScrollPhysics(),
-          allowSorting: true,
-          frozenColumnsCount: 1,
-          columnWidthMode: ColumnWidthMode.auto,
-          allowPullToRefresh: true,
-          headerGridLinesVisibility: GridLinesVisibility.horizontal,
-          gridLinesVisibility: GridLinesVisibility.none,
-        ),
-      ),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: getDocStream(acc),
+          builder: (context,
+              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null) {
+                Map<String, dynamic>? data = snapshot.data!.data();
+                if (data != null) {
+                  items = data['product'];
+                  Map temp = data['supply'];
+                  temp.forEach((key, values) {
+                    supply[key] = values;
+                  });
+                } else {
+                  items = {};
+                  supply = SplayTreeMap();
+                }
+              } else {
+                items = {};
+                supply = SplayTreeMap();
+              }
+              return SfDataGridTheme(
+                data: SfDataGridThemeData(
+                  gridLineStrokeWidth: 1.5,
+                  frozenPaneElevation: 0.0,
+                  frozenPaneLineWidth: 1.5,
+                ),
+                child: SfDataGrid(
+                  key: key,
+                  footer: Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Total:  \u{20B9} ${cf.format(PrGridSource(account: acc, date: date, column: prColunm, items: items, supply: supply).total)}',
+                        style: GoogleFonts.rajdhani(
+                            fontSize: 20.0, fontWeight: FontWeight.bold),
+                      )),
+                  source: PrGridSource(
+                      account: acc,
+                      date: date,
+                      column: prColunm,
+                      items: items,
+                      supply: supply),
+                  columns: getPrColumn(),
+                  verticalScrollPhysics: const BouncingScrollPhysics(),
+                  horizontalScrollPhysics: const BouncingScrollPhysics(),
+                  allowSorting: true,
+                  frozenColumnsCount: 1,
+                  columnWidthMode: ColumnWidthMode.auto,
+                  allowPullToRefresh: true,
+                  headerGridLinesVisibility: GridLinesVisibility.horizontal,
+                  gridLinesVisibility: GridLinesVisibility.none,
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return const Center(
+                child: Text('Something went worng'),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }),
       floatingActionButton: FloatingActionButton(
           child: Text(
             'PDF',
@@ -267,8 +327,13 @@ class PrGridSource extends DataGridSource {
   PrGridSource(
       {required this.account,
       required DateTimeRange date,
-      required this.column}) {
-    prGridRows = getRows(GridSource(account: account, date: date).prGridInfo);
+      required this.column,
+      required Map items,
+      required SplayTreeMap supply}) {
+    prGridRows = getRows(
+        GridSource(account: account, date: date, item: items, supply: supply)
+            .prGridInfo,
+        items);
   }
   late List<DataGridRow> prGridRows;
   String account;
@@ -279,8 +344,7 @@ class PrGridSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => prGridRows;
 
-  List<DataGridRow> getRows(List<List> prGridInfo) {
-    Map items = LocalData().getItem(account);
+  List<DataGridRow> getRows(List<List> prGridInfo, Map items) {
     List<List> row =
         List.generate(items.length, (index) => List.generate(3, (index) => 0));
 

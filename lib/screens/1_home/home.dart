@@ -1,10 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:sales_records/screens/2_products_entry/entry_screen.dart';
-import 'package:sales_records/storage/shared_preferences.dart';
-import 'package:sales_records/main.dart';
+import 'package:sales_records/storage/firebase_database.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -23,20 +23,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // contoller.addListener(() => setState(() {}));
-    acc = LocalData().getAccount() ?? [];
     isChecked = List.generate(acc.length, (index) => false);
     isDeleteClicked = false;
   }
 
   void addAccound() {
     Navigator.of(context).pop();
-    contoller.text.isNotEmpty ? acc.add(contoller.text) : null;
+    contoller.text.isNotEmpty ? setAccount(contoller.text) : null;
     contoller.clear();
-    LocalData().setAccount(acc);
-    setState(() {
-      acc = LocalData().getAccount()!;
-      isChecked = List.generate(acc.length, (index) => false);
-    });
   }
 
   @override
@@ -88,79 +82,113 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
         ],
       ),
-      body: acc.isEmpty
-          ? Center(
-              child: Text(
-                'No Accounts yet\nCreate a new one',
-                style: GoogleFonts.rajdhani(
-                    fontSize: 25.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: acc.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () => isDeleteClicked
-                      ? null
-                      : Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Account(name: acc[index]))),
-                  onLongPress: () => setState(
-                    () {
-                      isDeleteClicked = !isDeleteClicked;
-                    },
-                  ),
-                  child: Container(
-                    height: 50,
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    padding: const EdgeInsets.only(left: 10.0),
-                    alignment: Alignment.centerLeft,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5.0),
-                        border: Border.all(width: 0.5),
-                        color: Colors.white),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Icon(Icons.account_balance_rounded),
-                        const SizedBox(
-                          width: 15.0,
-                        ),
-                        Expanded(
-                          child: Text(
-                            acc[index],
-                            style: GoogleFonts.rajdhani(
-                                fontSize: 25.0,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: getAccountStream(),
+          builder: (context,
+              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null) {
+                Map<String, dynamic>? data = snapshot.data!.data();
+                acc = [];
+                if (data != null) {
+                  List<dynamic> list = data['accounts'];
+                  for (var element in list) {
+                    acc.add(element.toString());
+                  }
+                  (isChecked.length != acc.length)
+                      ? isChecked = List.generate(acc.length, (index) => false)
+                      : null;
+                }
+              } else {
+                acc = [];
+                (isChecked.length != acc.length)
+                    ? isChecked = List.generate(acc.length, (index) => false)
+                    : null;
+              }
+              return acc.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No Accounts yet\nCreate a new one',
+                        style: GoogleFonts.rajdhani(
+                            fontSize: 25.0,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: acc.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return GestureDetector(
+                          onTap: () => isDeleteClicked
+                              ? null
+                              : Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          Account(name: acc[index]))),
+                          onLongPress: () => setState(
+                            () {
+                              isDeleteClicked = !isDeleteClicked;
+                            },
                           ),
-                        ),
-                        isDeleteClicked
-                            ? Checkbox(
-                                fillColor:
-                                    MaterialStateProperty.all(Colors.black),
-                                checkColor: Colors.white,
-                                value: isChecked[index],
-                                onChanged: (value) {
-                                  setState(() {
-                                    isChecked[index] = value!;
-                                  });
-                                })
-                            : Container(
-                                width: 0,
-                              )
-                      ],
-                    ),
-                  ),
-                );
-              }),
+                          child: Container(
+                            height: 50,
+                            width: MediaQuery.of(context).size.width,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 5.0),
+                            padding: const EdgeInsets.only(left: 10.0),
+                            alignment: Alignment.centerLeft,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5.0),
+                                border: Border.all(width: 0.5),
+                                color: Colors.white),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Icon(Icons.account_balance_rounded),
+                                const SizedBox(
+                                  width: 15.0,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    acc[index],
+                                    style: GoogleFonts.rajdhani(
+                                        fontSize: 25.0,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                isDeleteClicked
+                                    ? Checkbox(
+                                        fillColor: MaterialStateProperty.all(
+                                            Colors.black),
+                                        checkColor: Colors.white,
+                                        value: isChecked[index],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            isChecked[index] = value!;
+                                          });
+                                        })
+                                    : Container(
+                                        width: 0,
+                                      )
+                              ],
+                            ),
+                          ),
+                        );
+                      });
+            } else if (snapshot.hasError) {
+              return const Center(
+                child: Text('Something went worng'),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }),
       floatingActionButton: !isDeleteClicked
           ? FloatingActionButton(
               child: const Icon(Icons.add),
@@ -291,7 +319,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          acc = LocalData().getAccount()!;
                           List<String> delAcc = [];
                           for (var i = 0; i < isChecked.length; i++) {
                             if (isChecked[i]) {
@@ -300,15 +327,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                           for (var x in delAcc) {
                             acc.remove(x);
-                            LocalData().deleteAccount(x);
+                            deleteAccount(x);
                           }
 
-                          LocalData().setAccount(acc);
-                          setState(() {
-                            isDeleteClicked = false;
-                            isChecked =
-                                List.generate(acc.length, (index) => false);
-                          });
+                          isDeleteClicked = false;
                         },
                         child: Text("Delete",
                             style: GoogleFonts.rajdhani(

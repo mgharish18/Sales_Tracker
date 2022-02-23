@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -5,8 +6,8 @@ import 'package:sales_records/screens/3_sales_history/table_screen.dart';
 import 'package:sales_records/screens/4_statisticts_graph/sales_graph.dart';
 import 'package:sales_records/screens/5_statement/st_page.dart';
 
-import 'package:sales_records/storage/shared_preferences.dart';
 import 'package:sales_records/screens/2_products_entry/widget_products_list.dart';
+import 'package:sales_records/storage/firebase_database.dart';
 
 class EntryPage extends StatefulWidget {
   final String name;
@@ -32,14 +33,12 @@ class _EntryPageState extends State<EntryPage> {
       setState(() {});
     });
     acc = widget.name;
-    items = LocalData().getItem(acc);
   }
 
-  void addItem() {
+  void addItem() async {
     if (_controller1.text.isNotEmpty & _controller2.text.isNotEmpty) {
-      LocalData().setItem(acc, _controller1.text, int.parse(_controller2.text));
+      setItem(acc, _controller1.text, int.parse(_controller2.text));
       Navigator.pop(context);
-      items = LocalData().getItem(acc);
       setState(() {
         _controller1.text = '';
         _controller2.text = '';
@@ -52,7 +51,7 @@ class _EntryPageState extends State<EntryPage> {
   void saveCount(String acc, List<int> countList) {
     setState(() {
       FocusManager.instance.primaryFocus?.unfocus();
-      LocalData().saveCount(acc, date, time, countList);
+      saveSupply(acc, date, time, countList);
     });
   }
 
@@ -105,48 +104,69 @@ class _EntryPageState extends State<EntryPage> {
                   ])
         ],
       ),
-      body: items.isEmpty
-          ? Center(
-              child: Text(
-                'Add your Products ',
-                style: GoogleFonts.rajdhani(
-                    fontSize: 25.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold),
-              ),
-            )
-          : Container(
-              margin: const EdgeInsets.all(20.0),
-              height: MediaQuery.of(context).size.height,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Date',
-                    style: GoogleFonts.rajdhani(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildDate(),
-                  const SizedBox(height: 15.0),
-                  Text(
-                    'Time',
-                    style: GoogleFonts.rajdhani(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  _buildTime(),
-                  const SizedBox(
-                    height: 20.0,
-                  ),
-                  ProductList(items: items),
-                ],
-              ),
-            ),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: getDocStream(acc),
+          builder: (context,
+              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null) {
+                Map<String, dynamic>? data = snapshot.data!.data();
+                (data != null) ? items = data['product'] : items = {};
+              } else {
+                items = {};
+              }
+              return items.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Add your Products ',
+                        style: GoogleFonts.rajdhani(
+                            fontSize: 25.0,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  : Container(
+                      margin: const EdgeInsets.all(20.0),
+                      height: MediaQuery.of(context).size.height,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Date',
+                            style: GoogleFonts.rajdhani(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildDate(),
+                          const SizedBox(height: 15.0),
+                          Text(
+                            'Time',
+                            style: GoogleFonts.rajdhani(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8.0),
+                          _buildTime(),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          ProductList(items: items),
+                        ],
+                      ),
+                    );
+            } else if (snapshot.hasError) {
+              return const Center(
+                child: Text('Something went worng'),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }),
       floatingActionButton: items.isNotEmpty
           ? FloatingActionButton(
               onPressed: () => saveCount(acc, ProductList.countList),

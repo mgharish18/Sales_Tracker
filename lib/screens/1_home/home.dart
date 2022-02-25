@@ -90,10 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
               if (snapshot.data != null) {
                 Map<String, dynamic>? data = snapshot.data!.data();
                 acc = [];
+                currentAccounts = [];
                 if (data != null) {
                   List<dynamic> list = data['accounts'];
                   for (var element in list) {
                     acc.add(element.toString());
+                    currentAccounts.add(element.toString());
                   }
                   (isChecked.length != acc.length)
                       ? isChecked = List.generate(acc.length, (index) => false)
@@ -329,8 +331,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             acc.remove(x);
                             deleteAccount(x);
                           }
-
-                          isDeleteClicked = false;
+                          setState(() {
+                            isDeleteClicked = false;
+                          });
                         },
                         child: Text("Delete",
                             style: GoogleFonts.rajdhani(

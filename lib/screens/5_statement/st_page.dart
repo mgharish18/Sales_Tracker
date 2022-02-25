@@ -132,11 +132,10 @@ class _StatementPageState extends State<StatementPage>
               GoogleFonts.rajdhani(fontSize: 25.0, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-              onPressed: () => setState(() {}),
-              icon: const Icon(Icons.refresh_rounded))
-        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: Navigator.of(context).pop,
+        ),
       ),
       body: Container(
         padding: const EdgeInsets.all(10.0),

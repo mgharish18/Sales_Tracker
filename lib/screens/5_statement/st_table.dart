@@ -48,7 +48,8 @@ class _StTableState extends State<StTable> {
               if (snapshot.data != null) {
                 Map<String, dynamic>? data = snapshot.data!.data();
                 if (data != null) {
-                  items = data['product'];
+                  List itemsList = data['product'];
+                  items = {for (var map in itemsList) ...map};
                   Map temp = data['supply'];
                   temp.forEach((key, values) {
                     supply[key] = values;
@@ -94,6 +95,7 @@ class _StTableState extends State<StTable> {
             }
           }),
       floatingActionButton: FloatingActionButton(
+          heroTag: "btn2",
           child: Text(
             'PDF',
             style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold),
@@ -235,7 +237,8 @@ class _PrTableState extends State<PrTable> {
               if (snapshot.data != null) {
                 Map<String, dynamic>? data = snapshot.data!.data();
                 if (data != null) {
-                  items = data['product'];
+                  List itemsList = data['product'];
+                  items = {for (var map in itemsList) ...map};
                   Map temp = data['supply'];
                   temp.forEach((key, values) {
                     supply[key] = values;
@@ -291,6 +294,7 @@ class _PrTableState extends State<PrTable> {
             }
           }),
       floatingActionButton: FloatingActionButton(
+          heroTag: "btn1",
           child: Text(
             'PDF',
             style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold),

@@ -62,11 +62,9 @@ class _SalesTableState extends State<SalesTable> {
                 fontSize: 25.0, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          actions: [
-            IconButton(
-                onPressed: () => setState(() {}),
-                icon: const Icon(Icons.refresh_rounded))
-          ],
+          leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              onPressed: Navigator.of(context).pop),
         ),
         body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
             stream: getDocStream(acc),
@@ -77,7 +75,8 @@ class _SalesTableState extends State<SalesTable> {
                 if (snapshot.data != null) {
                   Map<String, dynamic>? data = snapshot.data!.data();
                   if (data != null) {
-                    items = data['product'];
+                    List itemsList = data['product'];
+                    items = {for (var map in itemsList) ...map};
                     Map temp = data['supply'];
                     temp.forEach((key, values) {
                       supply[key] = values;

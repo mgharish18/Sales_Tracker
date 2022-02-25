@@ -15,9 +15,8 @@ DocumentReference docRef(String acc) {
 }
 
 Future<void> saveAllAccounts(List<String> accounts) async {
-  await collRef
-      .doc(FirebaseAuth.instance.currentUser!.uid)
-      .set({'accounts': accounts});
+  DocumentReference doc = collRef.doc(FirebaseAuth.instance.currentUser!.uid);
+  doc.set({'accounts': accounts});
 }
 
 Future setAccount(String account) async {
@@ -29,7 +28,7 @@ Future setAccount(String account) async {
     final document = docRef(account);
     final Map<String, dynamic> data = {
       'account': account,
-      'product': {},
+      'product': [],
       'supply': {}
     };
     await document.set(data);
@@ -45,12 +44,6 @@ Stream<DocumentSnapshot<Map<String, dynamic>>> getAccountStream() =>
 Future deleteAccount(String acc) async {
   final document = docRef(acc);
   await document.delete();
-  DocumentSnapshot data =
-      await collRef.doc(FirebaseAuth.instance.currentUser!.uid).get();
-  currentAccounts = [];
-  for (var element in data['accounts']) {
-    currentAccounts.add(element.toString());
-  }
   currentAccounts.remove(acc.toUpperCase());
   saveAllAccounts(currentAccounts);
 }
@@ -60,8 +53,9 @@ Future<void> setItem(String acc, String item, int price) async {
       .collection('Accounts')
       .doc(getDocId(acc))
       .get();
-  Map<String, dynamic> product = data['product'];
-  product[item] = price;
+  List product = data['product'];
+  Map<String, num> newItem = {item: price};
+  product.add(newItem);
 
   await FirebaseFirestore.instance
       .collection('Accounts')

@@ -75,6 +75,10 @@ class _EntryPageState extends State<EntryPage> {
           overflow: TextOverflow.ellipsis,
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: Navigator.of(context).pop,
+        ),
         actions: [
           PopupMenuButton(
               shape: RoundedRectangleBorder(
@@ -111,7 +115,12 @@ class _EntryPageState extends State<EntryPage> {
             if (snapshot.hasData) {
               if (snapshot.data != null) {
                 Map<String, dynamic>? data = snapshot.data!.data();
-                (data != null) ? items = data['product'] : items = {};
+                if (data != null) {
+                  List itemsList = data['product'];
+                  items = {for (var map in itemsList) ...map};
+                } else {
+                  items = {};
+                }
               } else {
                 items = {};
               }
@@ -125,37 +134,52 @@ class _EntryPageState extends State<EntryPage> {
                             fontWeight: FontWeight.bold),
                       ),
                     )
-                  : Container(
-                      margin: const EdgeInsets.all(20.0),
-                      height: MediaQuery.of(context).size.height,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Date',
-                            style: GoogleFonts.rajdhani(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                  : Scaffold(
+                      body: Container(
+                        margin: const EdgeInsets.all(20.0),
+                        height: MediaQuery.of(context).size.height,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Date',
+                              style: GoogleFonts.rajdhani(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildDate(),
-                          const SizedBox(height: 15.0),
-                          Text(
-                            'Time',
-                            style: GoogleFonts.rajdhani(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 8),
+                            _buildDate(),
+                            const SizedBox(height: 15.0),
+                            Text(
+                              'Time',
+                              style: GoogleFonts.rajdhani(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          _buildTime(),
-                          const SizedBox(
-                            height: 20.0,
-                          ),
-                          ProductList(items: items),
-                        ],
+                            const SizedBox(height: 8.0),
+                            _buildTime(),
+                            const SizedBox(
+                              height: 20.0,
+                            ),
+                            ProductList(items: items),
+                          ],
+                        ),
                       ),
+                      floatingActionButton: items.isNotEmpty
+                          ? FloatingActionButton(
+                              onPressed: () =>
+                                  saveCount(acc, ProductList.countList),
+                              child: Text(
+                                'Save',
+                                style: GoogleFonts.rajdhani(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : null,
                     );
             } else if (snapshot.hasError) {
               return const Center(
@@ -167,18 +191,6 @@ class _EntryPageState extends State<EntryPage> {
               );
             }
           }),
-      floatingActionButton: items.isNotEmpty
-          ? FloatingActionButton(
-              onPressed: () => saveCount(acc, ProductList.countList),
-              child: Text(
-                'Save',
-                style: GoogleFonts.rajdhani(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          : null,
     );
   }
 

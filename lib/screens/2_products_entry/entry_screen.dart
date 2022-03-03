@@ -68,11 +68,24 @@ class _EntryPageState extends State<EntryPage> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text(
-          acc,
-          style:
-              GoogleFonts.rajdhani(fontSize: 25.0, fontWeight: FontWeight.bold),
-          overflow: TextOverflow.ellipsis,
+        title: TweenAnimationBuilder(
+          tween: Tween<double>(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 1000),
+          builder: (context, double value, child) {
+            return Opacity(
+              opacity: value,
+              child: child,
+            );
+          },
+          child: Hero(
+            tag: acc,
+            child: Text(
+              acc,
+              style: GoogleFonts.rajdhani(
+                  fontSize: 25.0, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -230,6 +243,7 @@ class _EntryPageState extends State<EntryPage> {
         context: context,
         builder: (BuildContext buildContext) {
           return Dialog(
+              insetAnimationDuration: const Duration(milliseconds: 500),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0)),
               child: FittedBox(

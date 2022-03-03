@@ -18,6 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> acc = [];
   late bool isDeleteClicked;
   late List<bool> isChecked;
+  Color _color = Colors.amber;
+  Color _txtColor = Colors.black;
 
   @override
   void initState() {
@@ -52,7 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
           isDeleteClicked
               ? IconButton(
                   onPressed: () => setState(() {
-                        isDeleteClicked = !isDeleteClicked;
+                        isDeleteClicked = false;
+                        isChecked = List.generate(acc.length, (index) => false);
+                        _color = Colors.amber;
+                        _txtColor = Colors.black;
                       }),
                   icon: const Icon(Icons.arrow_back_ios_new_rounded))
               : PopupMenuButton(
@@ -109,12 +114,19 @@ class _HomeScreenState extends State<HomeScreen> {
               }
               return acc.isEmpty
                   ? Center(
-                      child: Text(
-                        'No Accounts yet\nCreate a new one',
-                        style: GoogleFonts.rajdhani(
-                            fontSize: 25.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold),
+                      child: TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0, end: 25),
+                        duration: const Duration(seconds: 1),
+                        builder: (BuildContext context, double value,
+                            Widget? child) {
+                          return Text(
+                            'No Accounts yet\nCreate a new one',
+                            style: GoogleFonts.rajdhani(
+                                fontSize: value,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          );
+                        },
                       ),
                     )
                   : ListView.builder(
@@ -131,10 +143,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Account(name: acc[index]))),
                           onLongPress: () => setState(
                             () {
-                              isDeleteClicked = !isDeleteClicked;
+                              isDeleteClicked = true;
                             },
                           ),
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
                             height: 50,
                             width: MediaQuery.of(context).size.width,
                             margin: const EdgeInsets.symmetric(
@@ -144,33 +157,46 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(5.0),
                                 border: Border.all(width: 0.5),
-                                color: Colors.white),
+                                color: _color),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(Icons.account_balance_rounded),
+                                Icon(
+                                  Icons.account_balance_rounded,
+                                  color: _txtColor,
+                                ),
                                 const SizedBox(
                                   width: 15.0,
                                 ),
                                 Expanded(
-                                  child: Text(
-                                    acc[index],
-                                    style: GoogleFonts.rajdhani(
-                                        fontSize: 25.0,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
+                                  child: Hero(
+                                    tag: acc[index],
+                                    child: Text(
+                                      acc[index],
+                                      style: GoogleFonts.rajdhani(
+                                          fontSize: 25.0,
+                                          color: _txtColor,
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
                                 isDeleteClicked
                                     ? Checkbox(
                                         fillColor: MaterialStateProperty.all(
-                                            Colors.black),
-                                        checkColor: Colors.white,
+                                            Colors.white),
+                                        checkColor: Colors.red,
                                         value: isChecked[index],
                                         onChanged: (value) {
                                           setState(() {
                                             isChecked[index] = value!;
+                                            if (value) {
+                                              _color = Colors.red;
+                                              _txtColor = Colors.white;
+                                            } else {
+                                              _color = Colors.amber;
+                                              _txtColor = Colors.black;
+                                            }
                                           });
                                         })
                                     : Container(
@@ -194,172 +220,202 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: !isDeleteClicked
           ? FloatingActionButton(
               child: const Icon(Icons.add),
-              onPressed: () => _buildAddDialog(),
+              onPressed: () => _scaleDialogAdd(),
             )
           : FloatingActionButton(
               child: const Icon(
                 Icons.delete_rounded,
                 color: Colors.black,
               ),
-              onPressed: () => _buildDeleteAlert(),
+              onPressed: () => _scaleDialogDelete(),
             ),
     );
   }
 
-  Future _buildAddDialog() {
-    return showDialog(
-        context: context,
-        builder: (BuildContext buildContext) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0)),
-            child: FittedBox(
-              child: Container(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Account',
-                      style: GoogleFonts.rajdhani(
-                          fontSize: 20.0, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(
-                      height: 10.0,
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      child: TextField(
-                        keyboardType: TextInputType.name,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.account_balance_rounded),
-                          suffixIcon: contoller.text.isEmpty
-                              ? Container(
-                                  width: 0,
-                                )
-                              : IconButton(
-                                  onPressed: () => contoller.clear(),
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.red,
-                                  )),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.black, width: 2.0),
-                              borderRadius: BorderRadius.circular(10.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.blue, width: 2.0),
-                              borderRadius: BorderRadius.circular(10.0)),
-                          labelText: "Name",
-                        ),
-                        controller: contoller,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 5.0,
-                    ),
-                    Wrap(
-                      spacing: MediaQuery.of(context).size.width * 0.4,
-                      children: [
-                        TextButton(
-                            onPressed: () => {
-                                  Navigator.of(context).pop(),
-                                  contoller.clear()
-                                },
-                            child: Text(
-                              'Back',
-                              style: GoogleFonts.rajdhani(
-                                  fontSize: 15.0,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold),
-                            )),
-                        TextButton(
-                          onPressed: () => addAccound(),
-                          child: Text(
-                            'Create',
-                            style: GoogleFonts.rajdhani(
-                                fontSize: 15.0,
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        )
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        });
+  Future<void> _scaleDialogAdd() {
+    return showGeneralDialog(
+      context: context,
+      pageBuilder: (context, a1, a2) {
+        return Container();
+      },
+      transitionBuilder: (context, a1, a2, child) {
+        var curve = Curves.easeInOut.transform(a1.value);
+        return Transform.scale(
+          scale: curve,
+          child: _buildAddDialog(context),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 500),
+    );
   }
 
-  Future _buildDeleteAlert() {
-    return showDialog(
-        context: context,
-        builder: (BuildContext buildContext) {
-          return isChecked.contains(true)
-              ? AlertDialog(
-                  title: Text("Do You Really Want to Delete",
-                      style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold)),
-                  content: Text("Account data will also be lost",
-                      style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold)),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          setState(() {
-                            isDeleteClicked = false;
-                            isChecked =
-                                List.generate(acc.length, (index) => false);
-                          });
-                        },
-                        child: Text("No",
-                            style: GoogleFonts.rajdhani(
-                                fontWeight: FontWeight.bold, fontSize: 20.0))),
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          List<String> delAcc = [];
-                          for (var i = 0; i < isChecked.length; i++) {
-                            if (isChecked[i]) {
-                              delAcc.add(acc[i]);
-                            }
-                          }
-                          for (var x in delAcc) {
-                            acc.remove(x);
-                            deleteAccount(x);
-                          }
-                          setState(() {
-                            isDeleteClicked = false;
-                          });
-                        },
-                        child: Text("Delete",
-                            style: GoogleFonts.rajdhani(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
-                                color: Colors.red)))
-                  ],
-                )
-              : AlertDialog(
-                  title: Text("Select the Account to delete",
-                      style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold)),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          setState(() {
-                            isDeleteClicked = false;
-                          });
-                        },
-                        child: Text("OK",
-                            style: GoogleFonts.rajdhani(
-                                fontWeight: FontWeight.bold, fontSize: 20.0)))
-                  ],
-                );
-        });
+  Widget _buildAddDialog(BuildContext context) {
+    return Dialog(
+      insetAnimationDuration: const Duration(milliseconds: 500),
+      elevation: 50.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      child: FittedBox(
+        child: Container(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Text(
+                'Account',
+                style: GoogleFonts.rajdhani(
+                    fontSize: 20.0, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: TextField(
+                  keyboardType: TextInputType.name,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.account_balance_rounded),
+                    suffixIcon: contoller.text.isEmpty
+                        ? Container(
+                            width: 0,
+                          )
+                        : IconButton(
+                            onPressed: () => contoller.clear(),
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.red,
+                            )),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(color: Colors.black, width: 2.0),
+                        borderRadius: BorderRadius.circular(10.0)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(color: Colors.blue, width: 2.0),
+                        borderRadius: BorderRadius.circular(10.0)),
+                    labelText: "Name",
+                  ),
+                  controller: contoller,
+                ),
+              ),
+              const SizedBox(
+                height: 5.0,
+              ),
+              Wrap(
+                spacing: MediaQuery.of(context).size.width * 0.4,
+                children: [
+                  TextButton(
+                      onPressed: () =>
+                          {Navigator.of(context).pop(), contoller.clear()},
+                      child: Text(
+                        'Back',
+                        style: GoogleFonts.rajdhani(
+                            fontSize: 15.0,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold),
+                      )),
+                  TextButton(
+                    onPressed: () => addAccound(),
+                    child: Text(
+                      'Create',
+                      style: GoogleFonts.rajdhani(
+                          fontSize: 15.0,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _scaleDialogDelete() {
+    return showGeneralDialog(
+      context: context,
+      pageBuilder: (context, a1, a2) {
+        return Container();
+      },
+      transitionBuilder: (context, a1, a2, child) {
+        var curve = Curves.easeInOut.transform(a1.value);
+        return Transform.scale(
+          scale: curve,
+          child: _buildDeleteAlert(context),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 500),
+    );
+  }
+
+  Widget _buildDeleteAlert(BuildContext context) {
+    return isChecked.contains(true)
+        ? AlertDialog(
+            title: Text("Do You Really Want to Delete",
+                style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold)),
+            content: Text("Account data will also be lost",
+                style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      isDeleteClicked = false;
+                      isChecked = List.generate(acc.length, (index) => false);
+                      _color = Colors.amber;
+                      _txtColor = Colors.black;
+                    });
+                  },
+                  child: Text("No",
+                      style: GoogleFonts.rajdhani(
+                          fontWeight: FontWeight.bold, fontSize: 20.0))),
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    List<String> delAcc = [];
+                    for (var i = 0; i < isChecked.length; i++) {
+                      if (isChecked[i]) {
+                        delAcc.add(acc[i]);
+                      }
+                    }
+                    for (var x in delAcc) {
+                      acc.remove(x);
+                      deleteAccount(x);
+                    }
+                    setState(() {
+                      isDeleteClicked = false;
+                      _color = Colors.amber;
+                      _txtColor = Colors.black;
+                    });
+                  },
+                  child: Text("Delete",
+                      style: GoogleFonts.rajdhani(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20.0,
+                          color: Colors.red)))
+            ],
+          )
+        : AlertDialog(
+            title: Text("Select the Account to delete",
+                style: GoogleFonts.rajdhani(fontWeight: FontWeight.bold)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      isDeleteClicked = false;
+                      _color = Colors.amber;
+                      _txtColor = Colors.black;
+                    });
+                  },
+                  child: Text("OK",
+                      style: GoogleFonts.rajdhani(
+                          fontWeight: FontWeight.bold, fontSize: 20.0)))
+            ],
+          );
   }
 }

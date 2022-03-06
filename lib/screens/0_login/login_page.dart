@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sales_records/screens/1_home/home.dart';
+import 'package:sales_records/screens/1_home/inherited_widget.dart';
 import 'package:sales_records/storage/firebase_auth.dart';
 import 'package:email_validator/email_validator.dart';
+
+import '../1_home/home.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -484,7 +486,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   @override
   Widget build(BuildContext context) {
     return isEmailVerified
-        ? const HomeScreen()
+        ? const StateWidget(
+            child: HomeScreen(),
+          )
         : Scaffold(
             body: Padding(
               padding: const EdgeInsets.all(15.0),

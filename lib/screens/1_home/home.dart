@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sales_records/screens/1_home/inherited_widget.dart';
 
 import 'package:sales_records/screens/2_products_entry/entry_screen.dart';
 import 'package:sales_records/storage/firebase_database.dart';
@@ -15,24 +15,50 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static final contoller = TextEditingController();
-  List<String> acc = [];
+  late List<String> acc;
   late bool isDeleteClicked;
   late List<bool> isChecked;
-  Color _color = Colors.amber;
-  Color _txtColor = Colors.black;
 
   @override
   void initState() {
     super.initState();
+
     // contoller.addListener(() => setState(() {}));
-    isChecked = List.generate(acc.length, (index) => false);
-    isDeleteClicked = false;
   }
 
   void addAccound() {
     Navigator.of(context).pop();
     contoller.text.isNotEmpty ? setAccount(contoller.text) : null;
     contoller.clear();
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void updateDeleteStatus() {
+    Navigator.of(context).pop();
+    StateInheritedWidget.of(context).stateWidget.setIsDeleteClicked(false);
+
+    StateInheritedWidget.of(context)
+        .stateWidget
+        .setIsChecked(List.generate(acc.length, (index) => false));
+  }
+
+  void deleteAccountLocal() {
+    Navigator.of(context).pop();
+    List<String> delAcc = [];
+    for (var i = 0; i < isChecked.length; i++) {
+      if (isChecked[i]) {
+        delAcc.add(acc[i]);
+      }
+    }
+    for (var x in delAcc) {
+      acc.remove(x);
+      deleteAccount(x);
+    }
+
+    StateInheritedWidget.of(context)
+        .stateWidget
+        .setIsChecked(List.generate(acc.length, (index) => false));
+    StateInheritedWidget.of(context).stateWidget.setIsDeleteClicked(false);
   }
 
   @override
@@ -42,6 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    isDeleteClicked = StateInheritedWidget.of(context).isDeleteClicked;
+    acc = StateInheritedWidget.of(context).acc;
+    isChecked = StateInheritedWidget.of(context).isChecked;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -53,12 +82,13 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           isDeleteClicked
               ? IconButton(
-                  onPressed: () => setState(() {
-                        isDeleteClicked = false;
-                        isChecked = List.generate(acc.length, (index) => false);
-                        _color = Colors.amber;
-                        _txtColor = Colors.black;
-                      }),
+                  onPressed: () {
+                    StateInheritedWidget.of(context).stateWidget.setIsChecked(
+                        List.generate(acc.length, (index) => false));
+                    StateInheritedWidget.of(context)
+                        .stateWidget
+                        .setIsDeleteClicked(false);
+                  },
                   icon: const Icon(Icons.arrow_back_ios_new_rounded))
               : PopupMenuButton(
                   itemBuilder: (context) => [
@@ -87,152 +117,45 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
         ],
       ),
-      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-          stream: getAccountStream(),
-          builder: (context,
-              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
-            if (snapshot.hasData) {
-              if (snapshot.data != null) {
-                Map<String, dynamic>? data = snapshot.data!.data();
-                acc = [];
-                currentAccounts = [];
-                if (data != null) {
-                  List<dynamic> list = data['accounts'];
-                  for (var element in list) {
-                    acc.add(element.toString());
-                    currentAccounts.add(element.toString());
-                  }
-                  (isChecked.length != acc.length)
-                      ? isChecked = List.generate(acc.length, (index) => false)
-                      : null;
-                }
-              } else {
-                acc = [];
-                (isChecked.length != acc.length)
-                    ? isChecked = List.generate(acc.length, (index) => false)
-                    : null;
-              }
-              return acc.isEmpty
-                  ? Center(
-                      child: TweenAnimationBuilder(
-                        tween: Tween<double>(begin: 0, end: 25),
-                        duration: const Duration(seconds: 1),
-                        builder: (BuildContext context, double value,
-                            Widget? child) {
-                          return Text(
-                            'No Accounts yet\nCreate a new one',
-                            style: GoogleFonts.rajdhani(
-                                fontSize: value,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                          );
-                        },
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: acc.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return GestureDetector(
-                          onTap: () => isDeleteClicked
-                              ? null
-                              : Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          Account(name: acc[index]))),
-                          onLongPress: () => setState(
-                            () {
-                              isDeleteClicked = true;
-                            },
-                          ),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            height: 50,
-                            width: MediaQuery.of(context).size.width,
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 5.0),
-                            padding: const EdgeInsets.only(left: 10.0),
-                            alignment: Alignment.centerLeft,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5.0),
-                                border: Border.all(width: 0.5),
-                                color: _color),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Icon(
-                                  Icons.account_balance_rounded,
-                                  color: _txtColor,
-                                ),
-                                const SizedBox(
-                                  width: 15.0,
-                                ),
-                                Expanded(
-                                  child: Hero(
-                                    tag: acc[index],
-                                    child: Text(
-                                      acc[index],
-                                      style: GoogleFonts.rajdhani(
-                                          fontSize: 25.0,
-                                          color: _txtColor,
-                                          fontWeight: FontWeight.bold),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                isDeleteClicked
-                                    ? Checkbox(
-                                        fillColor: MaterialStateProperty.all(
-                                            Colors.white),
-                                        checkColor: Colors.red,
-                                        value: isChecked[index],
-                                        onChanged: (value) {
-                                          setState(() {
-                                            isChecked[index] = value!;
-                                            if (value) {
-                                              _color = Colors.red;
-                                              _txtColor = Colors.white;
-                                            } else {
-                                              _color = Colors.amber;
-                                              _txtColor = Colors.black;
-                                            }
-                                          });
-                                        })
-                                    : Container(
-                                        width: 0,
-                                      )
-                              ],
-                            ),
-                          ),
-                        );
-                      });
-            } else if (snapshot.hasError) {
-              return const Center(
-                child: Text('Something went worng'),
-              );
-            } else {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          }),
+      body: acc.isEmpty
+          ? Center(
+              child: TweenAnimationBuilder(
+                tween: Tween<double>(begin: 0, end: 25),
+                curve: Curves.bounceIn,
+                duration: const Duration(seconds: 1),
+                builder: (BuildContext context, double value, Widget? child) {
+                  return Text(
+                    'No Accounts yet\nCreate a new one',
+                    style: GoogleFonts.rajdhani(
+                        fontSize: value,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  );
+                },
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: acc.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListOfAccount(index: index);
+              }),
       floatingActionButton: !isDeleteClicked
           ? FloatingActionButton(
               child: const Icon(Icons.add),
-              onPressed: () => _scaleDialogAdd(),
+              onPressed: () => _scaleDialogAdd(context),
             )
           : FloatingActionButton(
               child: const Icon(
                 Icons.delete_rounded,
                 color: Colors.black,
               ),
-              onPressed: () => _scaleDialogDelete(),
+              onPressed: () => _scaleDialogDelete(context),
             ),
     );
   }
 
-  Future<void> _scaleDialogAdd() {
+  Future<void> _scaleDialogAdd(BuildContext context) {
     return showGeneralDialog(
       context: context,
       pageBuilder: (context, a1, a2) {
@@ -331,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _scaleDialogDelete() {
+  Future<void> _scaleDialogDelete(BuildContext context) {
     return showGeneralDialog(
       context: context,
       pageBuilder: (context, a1, a2) {
@@ -359,37 +282,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(10.0)),
             actions: [
               TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() {
-                      isDeleteClicked = false;
-                      isChecked = List.generate(acc.length, (index) => false);
-                      _color = Colors.amber;
-                      _txtColor = Colors.black;
-                    });
-                  },
+                  onPressed: () => updateDeleteStatus(),
                   child: Text("No",
                       style: GoogleFonts.rajdhani(
                           fontWeight: FontWeight.bold, fontSize: 20.0))),
               TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    List<String> delAcc = [];
-                    for (var i = 0; i < isChecked.length; i++) {
-                      if (isChecked[i]) {
-                        delAcc.add(acc[i]);
-                      }
-                    }
-                    for (var x in delAcc) {
-                      acc.remove(x);
-                      deleteAccount(x);
-                    }
-                    setState(() {
-                      isDeleteClicked = false;
-                      _color = Colors.amber;
-                      _txtColor = Colors.black;
-                    });
-                  },
+                  onPressed: () => deleteAccountLocal(),
                   child: Text("Delete",
                       style: GoogleFonts.rajdhani(
                           fontWeight: FontWeight.bold,
@@ -404,18 +302,149 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(10.0)),
             actions: [
               TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() {
-                      isDeleteClicked = false;
-                      _color = Colors.amber;
-                      _txtColor = Colors.black;
-                    });
-                  },
+                  onPressed: () => updateDeleteStatus(),
                   child: Text("OK",
                       style: GoogleFonts.rajdhani(
                           fontWeight: FontWeight.bold, fontSize: 20.0)))
             ],
           );
+  }
+}
+
+// ignore: must_be_immutable
+class ListOfAccount extends StatefulWidget {
+  int index;
+  ListOfAccount({Key? key, required this.index}) : super(key: key);
+
+  @override
+  State<ListOfAccount> createState() => _ListOfAccountState();
+}
+
+class _ListOfAccountState extends State<ListOfAccount>
+    with SingleTickerProviderStateMixin {
+  late int index;
+  late List<String> acc;
+  late List<bool> isChecked;
+  late bool isDeleteClicked;
+  late AnimationController _animationController;
+  late Animation iconColorAnimation;
+  late Animation textColorAnimation;
+  late Animation containerColorAnimation;
+  late Animation leadingIconColorAnimation;
+  late Animation<double> sizeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 400));
+    iconColorAnimation = ColorTween(begin: Colors.white, end: Colors.red)
+        .animate(_animationController);
+    textColorAnimation = ColorTween(begin: Colors.black, end: Colors.white)
+        .animate(_animationController);
+    containerColorAnimation =
+        ColorTween(begin: Colors.amberAccent, end: Colors.black54)
+            .animate(_animationController);
+    leadingIconColorAnimation = ColorTween(begin: Colors.black, end: Colors.red)
+        .animate(_animationController);
+    sizeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 25, end: 15), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 15, end: 35), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 35, end: 25), weight: 30)
+    ]).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    index = widget.index;
+    acc = StateInheritedWidget.of(context).acc;
+    isChecked = StateInheritedWidget.of(context).isChecked;
+    isDeleteClicked = StateInheritedWidget.of(context).isDeleteClicked;
+    if (!isChecked[index] &&
+        _animationController.status == AnimationStatus.completed) {
+      _animationController.reset();
+    }
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (BuildContext context, _) {
+        return GestureDetector(
+          onTap: () => isDeleteClicked
+              ? null
+              : Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Account(name: acc[index]))),
+          onLongPress: () {
+            StateInheritedWidget.of(context)
+                .stateWidget
+                .setIsDeleteClicked(true);
+          },
+          child: Container(
+            height: 50,
+            width: MediaQuery.of(context).size.width,
+            margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+            padding: const EdgeInsets.only(left: 10.0),
+            alignment: Alignment.centerLeft,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.0),
+                border: Border.all(width: 0.5),
+                color: containerColorAnimation.value),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  Icons.account_balance_rounded,
+                  color: leadingIconColorAnimation.value,
+                ),
+                const SizedBox(
+                  width: 15.0,
+                ),
+                Expanded(
+                  child: Hero(
+                    tag: acc[index],
+                    child: Text(
+                      acc[index],
+                      style: GoogleFonts.rajdhani(
+                          fontSize: 25.0,
+                          color: textColorAnimation.value,
+                          fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                isDeleteClicked
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.delete_rounded,
+                          color: iconColorAnimation.value,
+                          size: sizeAnimation.value,
+                        ),
+                        onPressed: () {
+                          isChecked[index] = !isChecked[index];
+                          if (isChecked[index] == true) {
+                            _animationController.forward();
+                          } else {
+                            _animationController.reverse();
+                          }
+
+                          StateInheritedWidget.of(context)
+                              .stateWidget
+                              .setIsChecked(isChecked);
+                        })
+                    : Container(
+                        width: 0,
+                      )
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
